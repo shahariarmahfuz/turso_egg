@@ -277,3 +277,29 @@ class CashLedger(db.Model):
     running_balance = db.Column(db.Float, default=0.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Bank(db.Model):
+    __tablename__ = 'banks'
+    id = db.Column(db.Integer, primary_key=True)
+    bank_name = db.Column(db.String(150), nullable=False)
+    account_name = db.Column(db.String(150), nullable=False)
+    account_number = db.Column(db.String(100), unique=True, nullable=False)
+    address = db.Column(db.Text, nullable=True)
+    current_balance = db.Column(db.Float, default=0.0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class BankTransaction(db.Model):
+    __tablename__ = 'bank_transactions'
+    id = db.Column(db.Integer, primary_key=True)
+    bank_id = db.Column(db.Integer, db.ForeignKey('banks.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow().date)
+    description = db.Column(db.String(255), nullable=True)
+    code = db.Column(db.String(50), nullable=True)
+    name = db.Column(db.String(100), nullable=True)
+    cheque_number = db.Column(db.String(100), nullable=True)
+    credit = db.Column(db.Float, default=0.0) # Deposit
+    debit = db.Column(db.Float, default=0.0) # Withdrawal
+    running_balance = db.Column(db.Float, default=0.0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    bank = db.relationship('Bank', backref=db.backref('transactions', cascade="all, delete-orphan"), lazy=True)
+
