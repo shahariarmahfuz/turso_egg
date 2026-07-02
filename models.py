@@ -318,3 +318,41 @@ class BankTransaction(db.Model):
 
     bank = db.relationship('Bank', backref=db.backref('transactions', cascade="all, delete-orphan"), lazy=True)
 
+
+def generate_supplier_payment_voucher():
+    import random, string
+    return 'SP-' + ''.join(random.choices(string.digits, k=6))
+
+class SupplierPayment(db.Model):
+    __tablename__ = 'supplier_payments'
+    id = db.Column(db.Integer, primary_key=True)
+    voucher_no = db.Column(db.String(50), unique=True, nullable=False, default=generate_supplier_payment_voucher)
+    supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow().date)
+    previous_due = db.Column(db.Float, default=0.0)
+    discount = db.Column(db.Float, default=0.0)
+    cash_paid = db.Column(db.Float, default=0.0)
+    balance = db.Column(db.Float, default=0.0)
+    payment_method = db.Column(db.String(50), default='Cash')
+    bank_name = db.Column(db.String(100), nullable=True)
+    cheque_number = db.Column(db.String(100), nullable=True)
+    note = db.Column(db.Text, nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('admin.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    supplier = db.relationship('Supplier', backref=db.backref('payments', cascade="all, delete-orphan"), lazy=True)
+    admin = db.relationship('Admin', backref='supplier_payments', lazy=True)
+
+class SupplierLedger(db.Model):
+    __tablename__ = 'supplier_ledgers'
+    id = db.Column(db.Integer, primary_key=True)
+    supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    invoice_no = db.Column(db.String(50), nullable=True)
+    description = db.Column(db.String(255), nullable=True)
+    debit = db.Column(db.Float, default=0.0)
+    credit = db.Column(db.Float, default=0.0)
+    balance = db.Column(db.Float, default=0.0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    supplier = db.relationship('Supplier', backref=db.backref('ledger_entries', cascade="all, delete-orphan"), lazy=True)

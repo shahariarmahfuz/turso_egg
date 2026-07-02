@@ -58,17 +58,17 @@
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>{{ e.date.strftime('%Y-%m-%d') }}</td>
-                        <td>{{ e.head.head_name }}</td>
-                        <td>{{ e.head.head_code }}</td>
+                        <td>{{ e.expense_head.head_name }}</td>
+                        <td>{{ e.expense_head.head_code }}</td>
                         <td>{{ e.comment }}</td>
-                        <td class="text-danger fw-bold">${{ '%.2f' % e.amount }}</td>
+                        <td >৳{{ '%.2f' % e.amount }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr class="table-secondary font-weight-bold">
                         <td colspan="5" class="text-end">Total Expense Amount:</td>
-                        <td class="text-danger">${{ '%.2f' % total }}</td>
+                        <td>৳{{ '%.2f' % total }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -97,7 +97,7 @@ $(document).ready(function() {
         buttons: [
             { extend: 'excelHtml5', className: 'btn btn-success btn-sm', footer: true },
             { extend: 'csvHtml5', className: 'btn btn-info btn-sm', footer: true },
-            { extend: 'pdfHtml5', className: 'btn btn-danger btn-sm', footer: true },
+            { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm', footer: true },
             { extend: 'print', className: 'btn btn-secondary btn-sm', footer: true }
         ],
         order: [[1, 'desc']]

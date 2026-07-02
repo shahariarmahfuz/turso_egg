@@ -57,7 +57,7 @@ icons = {
     "Customer": "fa-users",
     "Sale": "fa-bag-shopping",
     "Sale Return": "fa-rotate-left",
-    "Customer Collection": "fa-hand-holding-dollar",
+    "Customer Collection": "fa-money-bill-wave",
     "Account Reports": "fa-chart-line"
 }
 

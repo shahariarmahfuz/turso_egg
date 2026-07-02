@@ -45,8 +45,8 @@
                 <strong>Contact:</strong> {{ customer.contact_number }}
             </div>
             <div class="col-md-6 text-end">
-                <h5 class="text-primary mb-1">Opening Balance: ${{ '%.2f' % opening_balance }}</h5>
-                <h5 class="text-danger">Closing Balance: ${{ '%.2f' % closing_balance }}</h5>
+                <h5 class="text-primary mb-1">Opening Balance: ৳{{ '%.2f' % opening_balance }}</h5>
+                <h5 class="text-danger">Closing Balance: ৳{{ '%.2f' % closing_balance }}</h5>
             </div>
         </div>
         <div class="table-responsive">
@@ -68,9 +68,9 @@
                         <td>{{ lg.date.strftime('%Y-%m-%d') }}</td>
                         <td>{{ lg.invoice_no or '-' }}</td>
                         <td>{{ lg.description }}</td>
-                        <td class="text-danger">${{ '%.2f' % lg.debit }}</td>
-                        <td class="text-success">${{ '%.2f' % lg.credit }}</td>
-                        <td class="font-weight-bold">${{ '%.2f' % lg.balance }}</td>
+                        <td>৳{{ '%.2f' % lg.debit }}</td>
+                        <td>৳{{ '%.2f' % lg.credit }}</td>
+                        <td>৳{{ '%.2f' % lg.balance }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -99,7 +99,7 @@ $(document).ready(function() {
         dom: '<"row"<"col-sm-12 col-md-4"l><"col-sm-12 col-md-4 text-center"B><"col-sm-12 col-md-4"f>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
         buttons: [
             { extend: 'excelHtml5', className: 'btn btn-success btn-sm' },
-            { extend: 'pdfHtml5', className: 'btn btn-danger btn-sm' },
+            { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm' },
             { extend: 'print', className: 'btn btn-secondary btn-sm' }
         ],
         ordering: false,

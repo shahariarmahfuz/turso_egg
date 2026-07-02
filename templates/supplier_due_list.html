@@ -18,21 +18,20 @@
                         <th>Address</th>
                         <th>Contact Number</th>
                         <th>Current Due</th>
-                        <th>Action</th>
+                        <th style="width: 1%; white-space: nowrap;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for sup in suppliers %}
                     <tr>
                         <td>{{ loop.index }}</td>
-                        <td class="font-weight-bold">{{ sup.supplier_name }}</td>
+                        <td>{{ sup.supplier_name }}</td>
                         <td>{{ sup.address or '-' }}</td>
                         <td>{{ sup.contact_number or '-' }}</td>
-                        <td class="font-weight-bold text-danger">${{ '%.2f' % sup.current_balance }}</td>
+                        <td >৳{{ '%.2f' % sup.current_balance }}</td>
                         <td>
-                            <a href="{{ url_for('supplier.supplier_ledger', supplier_id=sup.id) }}" class="btn btn-primary btn-sm text-white" title="View Ledger">
-                                <i class="fas fa-file-invoice"></i> View Ledger
-                            </a>
+                            <a href="{{ url_for('supplier.supplier_ledger', supplier_id=sup.id) }}" class="btn btn-primary btn-sm text-white" title="View Ledger"><i class="fas fa-file-invoice"></i></a>
+                            <a href="{{ url_for('supplier_payment.payment', supplier_id=sup.id) }}" class="btn btn-success btn-sm text-white" title="Pay"><i class="fas fa-money-bill-wave"></i></a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -40,7 +39,7 @@
                 <tfoot>
                     <tr class="table-secondary font-weight-bold">
                         <td colspan="4" class="text-end">Grand Total Due:</td>
-                        <td class="text-danger">${{ '%.2f' % total_due }}</td>
+                        <td>৳{{ '%.2f' % total_due }}</td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -69,7 +68,7 @@ $(document).ready(function() {
         dom: '<"row"<"col-sm-12 col-md-4"l><"col-sm-12 col-md-4 text-center"B><"col-sm-12 col-md-4"f>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
         buttons: [
             { extend: 'excelHtml5', className: 'btn btn-success btn-sm' },
-            { extend: 'pdfHtml5', className: 'btn btn-danger btn-sm' },
+            { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm' },
             { extend: 'print', className: 'btn btn-secondary btn-sm' }
         ]
     });

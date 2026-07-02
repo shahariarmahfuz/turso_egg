@@ -25,11 +25,11 @@
                     {% for b in banks %}
                     <tr>
                         <td>{{ loop.index }}</td>
-                        <td class="font-weight-bold text-primary">{{ b.bank_name }}</td>
+                        <td >{{ b.bank_name }}</td>
                         <td>{{ b.account_name }}</td>
                         <td>{{ b.account_number }}</td>
                         <td>{{ b.address }}</td>
-                        <td class="text-success fw-bold">${{ '%.2f' % b.current_balance }}</td>
+                        <td >৳{{ '%.2f' % b.current_balance }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -59,7 +59,7 @@ $(document).ready(function() {
         buttons: [
             { extend: 'excelHtml5', className: 'btn btn-success btn-sm' },
             { extend: 'csvHtml5', className: 'btn btn-info btn-sm' },
-            { extend: 'pdfHtml5', className: 'btn btn-danger btn-sm' },
+            { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm' },
             { extend: 'print', className: 'btn btn-secondary btn-sm' }
         ]
     });

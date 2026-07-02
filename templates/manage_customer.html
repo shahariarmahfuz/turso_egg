@@ -19,22 +19,22 @@
                         <th>Opening Balance</th>
                         <th>Current Balance</th>
                         <th>Date</th>
-                        <th>Action</th>
+                        <th style="width: 1%; white-space: nowrap;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for c in customers %}
                     <tr>
                         <td>{{ loop.index }}</td>
-                        <td class="font-weight-bold">{{ c.customer_name }}</td>
+                        <td>{{ c.customer_name }}</td>
                         <td>{{ c.customer_code }}</td>
                         <td>{{ c.address }}</td>
                         <td>{{ c.contact_number }}</td>
-                        <td>${{ '%.2f' % c.previous_balance }}</td>
-                        <td class="text-primary fw-bold">${{ '%.2f' % c.current_balance }}</td>
+                        <td>৳{{ '%.2f' % c.previous_balance }}</td>
+                        <td >৳{{ '%.2f' % c.current_balance }}</td>
                         <td>{{ c.created_date.strftime('%Y-%m-%d') }}</td>
                         <td>
-                            <a href="{{ url_for('customer.customer_ledger', customer_id=c.id) }}" class="btn btn-info btn-sm text-white" title="View Ledger"><i class="fas fa-file-invoice-dollar"></i></a>
+                            <a href="{{ url_for('customer.customer_ledger', customer_id=c.id) }}" class="btn btn-info btn-sm text-white" title="View Ledger"><i class="fas fa-file-invoice"></i></a>
                             {% if current_user.role == 'Admin' %}
                             <a href="{{ url_for('customer.edit_customer', id=c.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
                             <form action="{{ url_for('customer.delete_customer', id=c.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete customer?');">
@@ -69,7 +69,7 @@ $(document).ready(function() {
         dom: '<"row"<"col-sm-12 col-md-4"l><"col-sm-12 col-md-4 text-center"B><"col-sm-12 col-md-4"f>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
         buttons: [
             { extend: 'excelHtml5', className: 'btn btn-success btn-sm' },
-            { extend: 'pdfHtml5', className: 'btn btn-danger btn-sm' },
+            { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm' },
             { extend: 'print', className: 'btn btn-secondary btn-sm' }
         ]
     });

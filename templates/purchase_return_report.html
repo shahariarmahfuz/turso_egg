@@ -67,14 +67,14 @@
                 <tbody>
                     {% for r in returns %}
                     <tr>
-                        <td class="font-weight-bold">{{ r.return_invoice }}</td>
+                        <td>{{ r.return_invoice }}</td>
                         <td>{{ r.return_date.strftime('%Y-%m-%d') }}</td>
                         <td>{{ r.purchase.invoice_no if r.purchase else '-' }}</td>
                         <td>{{ r.supplier.supplier_name }}</td>
-                        <td class="text-primary fw-bold">${{ '%.2f' % r.total_amount }}</td>
-                        <td>${{ '%.2f' % r.discount }}</td>
-                        <td class="text-success">${{ '%.2f' % r.cash_refund }}</td>
-                        <td class="text-danger fw-bold">${{ '%.2f' % r.due_adjustment }}</td>
+                        <td >৳{{ '%.2f' % r.total_amount }}</td>
+                        <td>৳{{ '%.2f' % r.discount }}</td>
+                        <td>৳{{ '%.2f' % r.cash_refund }}</td>
+                        <td >৳{{ '%.2f' % r.due_adjustment }}</td>
                         <td><span class="badge {% if r.payment_method == 'Cash' %}bg-success{% else %}bg-danger{% endif %}">{{ r.payment_method }}</span></td>
                     </tr>
                     {% endfor %}
@@ -82,10 +82,10 @@
                 <tfoot>
                     <tr class="table-secondary font-weight-bold">
                         <td colspan="4" class="text-end">Grand Totals:</td>
-                        <td class="text-primary">${{ '%.2f' % totals.amount }}</td>
-                        <td>${{ '%.2f' % totals.discount }}</td>
-                        <td class="text-success">${{ '%.2f' % totals.refund }}</td>
-                        <td class="text-danger">${{ '%.2f' % totals.adjustment }}</td>
+                        <td>৳{{ '%.2f' % totals.amount }}</td>
+                        <td>৳{{ '%.2f' % totals.discount }}</td>
+                        <td>৳{{ '%.2f' % totals.refund }}</td>
+                        <td>৳{{ '%.2f' % totals.adjustment }}</td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -114,7 +114,7 @@ $(document).ready(function() {
         dom: '<"row"<"col-sm-12 col-md-4"l><"col-sm-12 col-md-4 text-center"B><"col-sm-12 col-md-4"f>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
         buttons: [
             { extend: 'excelHtml5', className: 'btn btn-success btn-sm', footer: true },
-            { extend: 'pdfHtml5', className: 'btn btn-danger btn-sm', footer: true },
+            { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm', footer: true },
             { extend: 'print', className: 'btn btn-secondary btn-sm', footer: true }
         ]
     });

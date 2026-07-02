@@ -63,14 +63,14 @@
                     {% for i in items %}
                     <tr>
                         <td>{{ i.sale.sale_date.strftime('%Y-%m-%d') }}</td>
-                        <td class="font-weight-bold">{{ i.sale.invoice_no }}</td>
+                        <td>{{ i.sale.invoice_no }}</td>
                         <td>{{ i.product.product_code }}</td>
                         <td>{{ i.product.product_name }}</td>
                         <td>{{ i.quantity }}</td>
-                        <td>${{ '%.2f' % i.cost_price }}</td>
-                        <td>${{ '%.2f' % i.selling_price }}</td>
-                        <td class="text-primary fw-bold">${{ '%.2f' % i.total_price }}</td>
-                        <td class="text-success fw-bold">${{ '%.2f' % i.profit }}</td>
+                        <td>৳{{ '%.2f' % i.cost_price }}</td>
+                        <td>৳{{ '%.2f' % i.selling_price }}</td>
+                        <td >৳{{ '%.2f' % i.total_price }}</td>
+                        <td >৳{{ '%.2f' % i.profit }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -80,8 +80,8 @@
                         <td>{{ totals.qty }}</td>
                         <td></td>
                         <td></td>
-                        <td class="text-primary">${{ '%.2f' % totals.price }}</td>
-                        <td class="text-success">${{ '%.2f' % totals.profit }}</td>
+                        <td>৳{{ '%.2f' % totals.price }}</td>
+                        <td>৳{{ '%.2f' % totals.profit }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -109,7 +109,7 @@ $(document).ready(function() {
         dom: '<"row"<"col-sm-12 col-md-4"l><"col-sm-12 col-md-4 text-center"B><"col-sm-12 col-md-4"f>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
         buttons: [
             { extend: 'excelHtml5', className: 'btn btn-success btn-sm', footer: true },
-            { extend: 'pdfHtml5', className: 'btn btn-danger btn-sm', footer: true },
+            { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm', footer: true },
             { extend: 'print', className: 'btn btn-secondary btn-sm', footer: true }
         ],
         order: [[0, 'desc'], [1, 'desc']]

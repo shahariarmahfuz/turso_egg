@@ -39,36 +39,36 @@
             <table class="table table-bordered" width="100%" cellspacing="0">
                 <tbody>
                     <tr>
-                        <td class="fw-bold w-50">Total Sales</td>
-                        <td class="text-end text-primary">${{ '%.2f' % total_sales_amount }}</td>
+                        <td class="w-50">Total Sales</td>
+                        <td class="text-end ">৳{{ '%.2f' % total_sales_amount }}</td>
                     </tr>
                     <tr>
                         <td>(-) Sales Return</td>
-                        <td class="text-end text-danger">${{ '%.2f' % total_returns }}</td>
+                        <td class="text-end ">৳{{ '%.2f' % total_returns }}</td>
                     </tr>
                     <tr>
                         <td>(-) Sales Discount</td>
-                        <td class="text-end text-danger">${{ '%.2f' % sales_discount }}</td>
+                        <td class="text-end ">৳{{ '%.2f' % sales_discount }}</td>
                     </tr>
                     <tr class="table-light fw-bold">
                         <td>Net Sales</td>
-                        <td class="text-end text-success">${{ '%.2f' % net_sales }}</td>
+                        <td class="text-end ">৳{{ '%.2f' % net_sales }}</td>
                     </tr>
                     <tr>
                         <td>(-) Cost of Goods Sold (COGS)</td>
-                        <td class="text-end text-danger">${{ '%.2f' % cogs }}</td>
+                        <td class="text-end ">৳{{ '%.2f' % cogs }}</td>
                     </tr>
                     <tr class="table-primary fw-bold">
                         <td>Gross Profit</td>
-                        <td class="text-end">${{ '%.2f' % gross_profit }}</td>
+                        <td class="text-end">৳{{ '%.2f' % gross_profit }}</td>
                     </tr>
                     <tr>
                         <td>(-) Office / Operational Expense</td>
-                        <td class="text-end text-danger">${{ '%.2f' % office_expense }}</td>
+                        <td class="text-end ">৳{{ '%.2f' % office_expense }}</td>
                     </tr>
                     <tr class="table-success text-dark fs-5 fw-bold">
                         <td>Net Profit</td>
-                        <td class="text-end">${{ '%.2f' % net_profit }}</td>
+                        <td class="text-end">৳{{ '%.2f' % net_profit }}</td>
                     </tr>
                 </tbody>
             </table>

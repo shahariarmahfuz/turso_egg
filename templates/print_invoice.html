@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice: {{ sale.invoice_no }}</title>
+    <style>
+        /* প্রিন্টের সময় ডিফল্ট পেজ সাইজ A5 সেট করার জন্য */
+        @page {
+            size: A5 portrait;
+            margin: 10mm;
+        }
+
+        /* ডিরেক্ট ব্যাকগ্রাউন্ড */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 0 auto;
+            padding: 15px;
+            max-width: 148mm;
+            box-sizing: border-box;
+            font-size: 14px;
+            position: relative;
+            min-height: 90vh;
+        }
+
+        /* টপ হেডার সেকশন */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 5px;
+            line-height: 1.6;
+        }
+
+        .company-info {
+            text-align: left;
+        }
+
+        /* কোম্পানির নাম বড় করার জন্য নতুন ক্লাস */
+        .company-name {
+            font-size: 22px; 
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+
+        .invoice-details {
+            text-align: right;
+        }
+
+        /* ইনভয়েস টাইটেল */
+        .invoice-title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .invoice-title h2 {
+            margin: 0;
+            font-size: 18px; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* ক্লায়েন্ট ও পেমেন্ট ইনফো */
+        .middle-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .client-info {
+            text-align: left;
+        }
+
+        .payment-print-info {
+            text-align: right;
+        }
+
+        /* মেইন টেবিল স্টাইল (হালকা কিন্তু প্রিন্টে স্পষ্ট বর্ডার) */
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+
+        .main-table th, .main-table td {
+            /* কুচকুচে কালোর বদলে ডার্ক গ্রে ব্যবহার করা হয়েছে যাতে হালকা লাগে কিন্তু প্রিন্টে আসে */
+            border: 1px solid #555555; 
+            padding: 10px 5px;
+        }
+
+        .main-table th {
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .main-table th.right, .main-table td.right { text-align: right; }
+        .main-table th.center, .main-table td.center { text-align: center; }
+
+        /* নিচের অংশ (হিসাব) */
+        .bottom-section {
+            display: flex;
+            justify-content: flex-end; 
+        }
+
+        .totals {
+            width: 55%;
+        }
+
+        .totals table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0;
+        }
+
+        .totals table th, .totals table td {
+            border: none;
+            padding: 6px 5px;
+        }
+
+        .totals table tr.total-row td {
+            border-top: 1px solid #555555; 
+            font-weight: bold;
+            font-size: 16px; 
+        }
+        
+        .totals table td.right { text-align: right; }
+
+        /* মাঝখানে বড় টেক্সট */
+        .centered-note {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 18px; 
+            font-weight: bold;
+            color: #222;
+        }
+
+        /* সিগনেচার সেকশন */
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 70px;
+            padding: 0 10px;
+        }
+
+        .sign-box {
+            width: 40%;
+            text-align: center;
+            border-top: 1px solid #000;
+            padding-top: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* ওয়াটারমার্ক */
+        .watermark {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 10px;
+            color: #cccccc; 
+            letter-spacing: 1px;
+            user-select: none;
+        }
+
+        /* প্রিন্ট বাটন */
+        .print-btn {
+            display: block;
+            margin: 0 auto 20px auto;
+            padding: 8px 16px;
+            background-color: #000;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+
+        .print-btn:hover {
+            background-color: #333;
+        }
+
+        /* প্রিন্ট করার সময় বাটন গায়েব */
+        @media print {
+            body {
+                max-width: none;
+                margin: 0;
+                padding: 0;
+            }
+            .print-btn {
+                display: none;
+            }
+            .watermark {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- প্রিন্ট বাটন -->
+    <button class="print-btn" onclick="window.print()">🖨️ Print A5 Invoice</button>
+
+    <!-- টপ হেডার -->
+    <div class="top-header">
+        <div class="company-info">
+            <span class="company-name">Bhai Bhai Agency</span><br>
+            Mongoler Gaon Bottola Bazar<br>
+            Sonargaon, Narayanganj<br>
+            Mobile: 01612119993, 01811119993
+        </div>
+        <div class="invoice-details">
+            <strong>Invoice No:</strong> {{ sale.invoice_no }}<br>
+            <strong>Date:</strong> {{ sale.sale_date.strftime('%b %d, %Y') }}
+        </div>
+    </div>
+
+    <!-- ইনভয়েস লেখা -->
+    <div class="invoice-title">
+        <h2>Invoice</h2>
+    </div>
+
+    <!-- ক্লায়েন্ট ও পেমেন্ট ইনফো -->
+    <div class="middle-section">
+        <div class="client-info">
+            <strong>Billed To:</strong><br>
+            {% if sale.customer and sale.customer.customer_name != 'Cash Customer' %}
+                {{ sale.customer.customer_name }}<br>
+                {% if sale.customer.address %}{{ sale.customer.address }}<br>{% endif %}
+                {% if sale.customer.contact_number %}{{ sale.customer.contact_number }}{% endif %}
+            {% else %}
+                Cash Sale
+            {% endif %}
+        </div>
+        <div class="payment-print-info">
+            <strong>Payment Method:</strong> {{ sale.payment_method }}<br>
+            <strong>Printed By:</strong> {{ current_user.username }}
+        </div>
+    </div>
+
+    <!-- আইটেম টেবিল (ফুল বর্ডার এবং সিরিয়াল নম্বর সহ) -->
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th class="center" style="width: 10%;">SL</th>
+                <th>Description</th>
+                <th class="center" style="width: 15%;">Qty</th>
+                <th class="right" style="width: 20%;">Price</th>
+                <th class="right" style="width: 20%;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in sale.items %}
+            <tr>
+                <td class="center">{{ loop.index }}</td>
+                <td>{{ item.product.product_name }}</td>
+                <td class="center">{{ item.quantity }}</td>
+                <td class="right">৳ {{ '%.2f' % item.selling_price }}</td>
+                <td class="right">৳ {{ '%.2f' % item.total_price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- নিচের অংশ (হিসাব) -->
+    <div class="bottom-section">
+        <div class="totals">
+            <table>
+                <tr>
+                    <td class="right">Subtotal:</td>
+                    <td class="right">৳ {{ '%.2f' % sale.subtotal }}</td>
+                </tr>
+                {% if sale.vat and sale.vat > 0 %}
+                <tr>
+                    <td class="right">VAT:</td>
+                    <td class="right">৳ {{ '%.2f' % sale.vat }}</td>
+                </tr>
+                {% endif %}
+                {% if sale.labour_cost and sale.labour_cost > 0 %}
+                <tr>
+                    <td class="right">Labour Cost:</td>
+                    <td class="right">৳ {{ '%.2f' % sale.labour_cost }}</td>
+                </tr>
+                {% endif %}
+                {% if sale.discount and sale.discount > 0 %}
+                <tr>
+                    <td class="right">Discount:</td>
+                    <td class="right">- ৳ {{ '%.2f' % sale.discount }}</td>
+                </tr>
+                {% endif %}
+                <tr class="total-row">
+                    <td class="right">Total Amount:</td>
+                    <td class="right">৳ {{ '%.2f' % sale.total_amount }}</td>
+                </tr>
+                <tr>
+                    <td class="right" style="color: green;">Paid Amount:</td>
+                    <td class="right" style="color: green;">৳ {{ '%.2f' % sale.cash_paid }}</td>
+                </tr>
+                <tr>
+                    <td class="right" style="color: red;">Due Amount:</td>
+                    <td class="right" style="color: red;">৳ {{ '%.2f' % sale.due_amount }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- মাঝখানে বড় টেক্সট -->
+    <div class="centered-note">
+        {% if sale.note %}
+            {{ sale.note }}
+        {% else %}
+            Thank you for your business!
+        {% endif %}
+    </div>
+
+    <!-- সিগনেচার সেকশন -->
+    <div class="signature-section">
+        <div class="sign-box">Customer Signature</div>
+        <div class="sign-box">Authorized Signature</div>
+    </div>
+
+    <!-- নিচে ওয়াটারমার্ক -->
+    <div class="watermark">
+        Developed by Mahfuz
+    </div>
+
+    <!-- Auto-print Script -->
+    <script>
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autoprint') !== 'false') {
+                setTimeout(function() {
+                    window.print();
+                }, 500);
+            }
+        };
+    </script>
+</body>
+</html>

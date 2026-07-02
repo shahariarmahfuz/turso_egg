@@ -59,7 +59,7 @@
                 <tbody>
                     <tr class="table-info fw-bold">
                         <td colspan="7" class="text-end">Opening Balance:</td>
-                        <td class="text-primary">${{ '%.2f' % opening_balance }}</td>
+                        <td>৳{{ '%.2f' % opening_balance }}</td>
                     </tr>
                     {% for t in transactions %}
                     <tr>
@@ -68,18 +68,18 @@
                         <td>{{ t.code }}</td>
                         <td>{{ t.name }}</td>
                         <td>{{ t.cheque_number }}</td>
-                        <td class="text-success">${{ '%.2f' % t.credit }}</td>
-                        <td class="text-danger">${{ '%.2f' % t.debit }}</td>
-                        <td class="text-primary fw-bold">${{ '%.2f' % t.display_balance }}</td>
+                        <td>৳{{ '%.2f' % t.credit }}</td>
+                        <td>৳{{ '%.2f' % t.debit }}</td>
+                        <td >৳{{ '%.2f' % t.display_balance }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr class="table-secondary font-weight-bold">
                         <td colspan="5" class="text-end">Summary:</td>
-                        <td class="text-success">${{ '%.2f' % total_credit }}</td>
-                        <td class="text-danger">${{ '%.2f' % total_debit }}</td>
-                        <td class="text-primary">${{ '%.2f' % closing_balance }}</td>
+                        <td>৳{{ '%.2f' % total_credit }}</td>
+                        <td>৳{{ '%.2f' % total_debit }}</td>
+                        <td>৳{{ '%.2f' % closing_balance }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -109,7 +109,7 @@ $(document).ready(function() {
         buttons: [
             { extend: 'excelHtml5', className: 'btn btn-success btn-sm', footer: true },
             { extend: 'csvHtml5', className: 'btn btn-info btn-sm', footer: true },
-            { extend: 'pdfHtml5', className: 'btn btn-danger btn-sm', footer: true },
+            { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm', footer: true },
             { extend: 'print', className: 'btn btn-secondary btn-sm', footer: true }
         ],
         ordering: false,

@@ -77,13 +77,13 @@
                     {% for c in collections %}
                     <tr>
                         <td>{{ c.date.strftime('%Y-%m-%d') }}</td>
-                        <td class="font-weight-bold text-success">{{ c.voucher_no }}</td>
+                        <td >{{ c.voucher_no }}</td>
                         <td>{{ c.customer.customer_name }}</td>
-                        <td class="text-danger">${{ '%.2f' % c.previous_due }}</td>
-                        <td>${{ '%.2f' % c.discount }}</td>
-                        <td class="text-success">${{ '%.2f' % (c.cash_paid if c.payment_method != 'Cheque' else 0) }}</td>
-                        <td class="text-info">${{ '%.2f' % (c.cash_paid if c.payment_method == 'Cheque' else 0) }}</td>
-                        <td class="text-primary fw-bold">${{ '%.2f' % c.balance }}</td>
+                        <td>৳{{ '%.2f' % c.previous_due }}</td>
+                        <td>৳{{ '%.2f' % c.discount }}</td>
+                        <td>৳{{ '%.2f' % (c.cash_paid if c.payment_method != 'Cheque' else 0) }}</td>
+                        <td>৳{{ '%.2f' % (c.cash_paid if c.payment_method == 'Cheque' else 0) }}</td>
+                        <td >৳{{ '%.2f' % c.balance }}</td>
                         <td><span class="badge bg-secondary">{{ c.payment_method }}</span></td>
                         <td>{{ c.bank_name or '-' }}</td>
                     </tr>
@@ -92,11 +92,11 @@
                 <tfoot>
                     <tr class="table-secondary font-weight-bold">
                         <td colspan="3" class="text-end">Totals:</td>
-                        <td class="text-danger">${{ '%.2f' % totals.prev_due }}</td>
-                        <td>${{ '%.2f' % totals.discount }}</td>
-                        <td class="text-success">${{ '%.2f' % totals.cash_paid }}</td>
-                        <td class="text-info">${{ '%.2f' % totals.cheque }}</td>
-                        <td class="text-primary">${{ '%.2f' % totals.balance }}</td>
+                        <td>৳{{ '%.2f' % totals.prev_due }}</td>
+                        <td>৳{{ '%.2f' % totals.discount }}</td>
+                        <td>৳{{ '%.2f' % totals.cash_paid }}</td>
+                        <td>৳{{ '%.2f' % totals.cheque }}</td>
+                        <td>৳{{ '%.2f' % totals.balance }}</td>
                         <td colspan="2"></td>
                     </tr>
                 </tfoot>
@@ -125,7 +125,7 @@ $(document).ready(function() {
         dom: '<"row"<"col-sm-12 col-md-4"l><"col-sm-12 col-md-4 text-center"B><"col-sm-12 col-md-4"f>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
         buttons: [
             { extend: 'excelHtml5', className: 'btn btn-success btn-sm', footer: true },
-            { extend: 'pdfHtml5', className: 'btn btn-danger btn-sm', footer: true },
+            { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm', footer: true },
             { extend: 'print', className: 'btn btn-secondary btn-sm', footer: true }
         ],
         order: [[0, 'desc'], [1, 'desc']]

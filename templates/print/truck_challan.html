@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truck Challan: {{ sale.invoice_no }}</title>
+    <style>
+        /* বেসিক রিসেট */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #e0e0e0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* A5 পেজ সাইজ ও প্রিন্ট সেটআপ */
+        @page {
+            size: A5;
+            margin: 0;
+        }
+
+        .a5-container {
+            width: 148mm;
+            min-height: 210mm;
+            margin: 20px auto;
+            background: white;
+            padding: 15mm;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* প্রিন্ট বাটন স্টাইল */
+        .print-btn {
+            display: block;
+            margin: 20px auto 0 auto;
+            padding: 8px 16px;
+            background-color: #000;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .a5-container {
+                margin: 0;
+                box-shadow: none;
+                width: 148mm;
+                height: 210mm;
+                page-break-after: avoid;
+            }
+            .print-btn {
+                display: none;
+            }
+        }
+
+        /* হেডার টাইটেল */
+        .header-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #222;
+            margin-top: 5px;
+            margin-bottom: 25px; /* লোগো না থাকায় মার্জিন কিছুটা বাড়ানো হয়েছে ভারসাম্য রাখার জন্য */
+        }
+
+        /* কাস্টমার ও ইনভয়েস ইনফো সেকশন */
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 11px;
+            color: #222;
+            line-height: 1.4;
+        }
+
+        .left-info {
+            max-width: 60%;
+        }
+
+        .right-info {
+            text-align: right;
+            max-width: 35%;
+        }
+
+        /* টেবিল ডিজাইন (চিকন/কমপ্যাক্ট করা হয়েছে) */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-bottom: 40px;
+            color: #222;
+        }
+
+        th, td {
+            border: 1px solid #ddd; /* Thinner and lighter border */
+            padding: 3px 4px;
+            text-align: center;
+        }
+
+        th {
+            font-weight: bold;
+            background-color: #fcfcfc;
+        }
+
+        .total-row {
+            font-weight: bold;
+        }
+
+        /* সিগনেচার সেকশন */
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 120px;
+            font-size: 10px;
+            color: #222;
+            font-weight: bold;
+        }
+
+        .sign-box {
+            width: 130px;
+            text-align: center;
+            border-top: 1px dotted #222;
+            padding-top: 5px;
+        }
+
+        /* ফুটার */
+        .footer {
+            position: absolute;
+            bottom: 12mm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 9px;
+            color: #666;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    
+    <button class="print-btn" onclick="window.print()">🖨️ Print Truck Challan</button>
+
+    <div class="a5-container">
+        <div class="header-title">Truck Challan</div>
+        
+        <div class="info-section">
+            <div class="left-info">
+                <div style="font-weight: bold; margin-bottom: 3px;">Invoice No #: {{ sale.invoice_no }}</div>
+                <div style="font-weight: bold; font-size: 12px; margin-bottom: 3px;">WALTON HI-TECH INDUSTRIES PLC.</div>
+                <div>(bhai bhai electronics) Narayangonj.bangladhes.</div>
+                <div>01612119993,01811119993</div>
+            </div>
+            
+            <div class="right-info">
+                <div style="font-weight: bold; margin-bottom: 3px;">Date : {{ sale.sale_date.strftime('%d-%m-%Y') }}</div>
+                {% if sale.customer and sale.customer.customer_name != 'Cash Customer' %}
+                    <div>Customer ID: CUST-{{ "%04d" % sale.customer.id }}</div>
+                    <div>Name: {{ sale.customer.customer_name }}</div>
+                    {% if sale.customer.address %}<div>Address: {{ sale.customer.address }}</div>{% endif %}
+                    {% if sale.customer.contact_number %}<div>Mobile: {{ sale.customer.contact_number }}</div>{% endif %}
+                {% else %}
+                    <div style="font-weight: bold; font-size: 14px; margin-top: 5px;">Cash Sale</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 8%;">SL</th>
+                    <th style="width: 44%;">Item Name</th>
+                    <th style="width: 12%;">Quantity</th>
+                    <th style="width: 12%;">Transport</th>
+                    <th style="width: 12%;">Labour</th>
+                    <th style="width: 12%;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set ns = namespace(total_qty=0) %}
+                {% for item in sale.items %}
+                {% set ns.total_qty = ns.total_qty + item.quantity %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ item.product.product_name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>৳ {{ '%.2f' % item.total_price }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td>Total</td>
+                    <td></td>
+                    <td>{{ ns.total_qty }}</td>
+                    <td>৳ {{ '%.2f' % (sale.transport_cost or 0) }}</td>
+                    <td>৳ {{ '%.2f' % (sale.labour_cost or 0) }}</td>
+                    <td>৳ {{ '%.2f' % sale.total_amount }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="signatures">
+            <div class="sign-box">Prepared By</div>
+            <div class="sign-box">Customer Signature</div>
+        </div>
+
+        <div class="footer">
+            Developed By: Mahfuz
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autoprint') !== 'false') {
+                setTimeout(function() {
+                    window.print();
+                }, 500);
+            }
+        };
+    </script>
+</body>
+</html>

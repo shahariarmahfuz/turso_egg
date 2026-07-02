@@ -23,25 +23,26 @@
                         <th>Paid</th>
                         <th>Due</th>
                         <th>Method</th>
-                        <th>Action</th>
+                        <th style="width: 1%; white-space: nowrap;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for s in sales %}
                     <tr>
                         <td>{{ s.sale_date.strftime('%Y-%m-%d') }}</td>
-                        <td class="font-weight-bold">{{ s.invoice_no }}</td>
+                        <td>{{ s.invoice_no }}</td>
                         <td>{{ s.bill_number or '-' }}</td>
                         <td>{{ s.customer.customer_name }}</td>
-                        <td class="text-primary fw-bold">${{ '%.2f' % s.total_amount }}</td>
-                        <td>${{ '%.2f' % s.discount }}</td>
-                        <td class="text-success">${{ '%.2f' % s.cash_paid }}</td>
-                        <td class="text-danger fw-bold">${{ '%.2f' % s.due_amount }}</td>
+                        <td >৳{{ '%.2f' % s.total_amount }}</td>
+                        <td>৳{{ '%.2f' % s.discount }}</td>
+                        <td>৳{{ '%.2f' % s.cash_paid }}</td>
+                        <td >৳{{ '%.2f' % s.due_amount }}</td>
                         <td><span class="badge {% if s.payment_method == 'Cash' %}bg-success{% else %}bg-danger{% endif %}">{{ s.payment_method }}</span></td>
                         <td>
-                            <button type="button" class="btn btn-info btn-sm text-white" title="View Invoice" onclick="alert('Viewing Invoice: {{ s.invoice_no }}')"><i class="fas fa-eye"></i></button>
-                            <button type="button" class="btn btn-primary btn-sm text-white" title="Print Invoice" onclick="alert('Printing Invoice: {{ s.invoice_no }}')"><i class="fas fa-print"></i></button>
+                            <a href="{{ url_for('sale.print_invoice', id=s.id) }}?autoprint=false" class="btn btn-info btn-sm text-white" title="View Invoice"><i class="fas fa-eye"></i></a>
+                            <a href="{{ url_for('sale.print_invoice', id=s.id) }}" target="_blank" class="btn btn-primary btn-sm text-white" title="Print Invoice"><i class="fas fa-print"></i></a>
 {% if current_user.role == 'Admin' %}
+                            <a href="#" class="btn btn-warning btn-sm text-white" title="Edit (Coming Soon)" onclick="alert('Edit Sale {{ s.invoice_no }}'); return false;"><i class="fas fa-edit"></i></a>
                             <form action="{{ url_for('sale.delete_sale', id=s.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete sale? Stock and customer balances will be restored.');">
                                 <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
                             </form>
@@ -75,7 +76,7 @@ $(document).ready(function() {
         dom: '<"row"<"col-sm-12 col-md-4"l><"col-sm-12 col-md-4 text-center"B><"col-sm-12 col-md-4"f>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
         buttons: [
             { extend: 'excelHtml5', className: 'btn btn-success btn-sm' },
-            { extend: 'pdfHtml5', className: 'btn btn-danger btn-sm' },
+            { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm' },
             { extend: 'print', className: 'btn btn-secondary btn-sm' }
         ],
         order: [[0, 'desc'], [1, 'desc']]

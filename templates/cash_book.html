@@ -49,16 +49,16 @@
                         <td colspan="3" class="text-end">Previous Balance:</td>
                         <td></td>
                         <td></td>
-                        <td class="text-primary">${{ '%.2f' % previous_balance }}</td>
+                        <td>৳{{ '%.2f' % previous_balance }}</td>
                     </tr>
                     {% for lg in ledgers %}
                     <tr>
                         <td>{{ lg.date.strftime('%Y-%m-%d') }}</td>
                         <td>{{ lg.description }}</td>
                         <td>{{ lg.voucher_no }}</td>
-                        <td class="text-success">{% if lg.type == 'In' %}${{ '%.2f' % lg.amount }}{% else %}-{% endif %}</td>
-                        <td class="text-danger">{% if lg.type == 'Out' %}${{ '%.2f' % lg.amount }}{% else %}-{% endif %}</td>
-                        <td class="text-primary fw-bold">${{ '%.2f' % lg.display_balance }}</td>
+                        <td>{% if lg.type == 'In' %}৳{{ '%.2f' % lg.amount }}{% else %}-{% endif %}</td>
+                        <td>{% if lg.type == 'Out' %}৳{{ '%.2f' % lg.amount }}{% else %}-{% endif %}</td>
+                        <td >৳{{ '%.2f' % lg.display_balance }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -69,20 +69,20 @@
             <div class="col-md-6 offset-md-6">
                 <table class="table table-sm table-bordered bg-light">
                     <tr>
-                        <td class="fw-bold w-50">Previous Balance</td>
-                        <td class="text-end">${{ '%.2f' % previous_balance }}</td>
+                        <td class="w-50">Previous Balance</td>
+                        <td class="text-end">৳{{ '%.2f' % previous_balance }}</td>
                     </tr>
                     <tr>
-                        <td class="fw-bold">Today Cash Receive</td>
-                        <td class="text-end text-success">${{ '%.2f' % today_receive }}</td>
+                        <td>Today Cash Receive</td>
+                        <td class="text-end ">৳{{ '%.2f' % today_receive }}</td>
                     </tr>
                     <tr>
-                        <td class="fw-bold">Today Expense</td>
-                        <td class="text-end text-danger">${{ '%.2f' % today_expense }}</td>
+                        <td>Today Expense</td>
+                        <td class="text-end ">৳{{ '%.2f' % today_expense }}</td>
                     </tr>
                     <tr class="table-primary fs-5">
-                        <td class="fw-bold">Cash Balance (In Hand)</td>
-                        <td class="text-end fw-bold">${{ '%.2f' % cash_in_hand }}</td>
+                        <td>Cash Balance (In Hand)</td>
+                        <td class="text-end ">৳{{ '%.2f' % cash_in_hand }}</td>
                     </tr>
                 </table>
             </div>
@@ -111,7 +111,7 @@ $(document).ready(function() {
         buttons: [
             { extend: 'excelHtml5', className: 'btn btn-success btn-sm' },
             { extend: 'csvHtml5', className: 'btn btn-info btn-sm' },
-            { extend: 'pdfHtml5', className: 'btn btn-danger btn-sm' },
+            { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm' },
             { extend: 'print', className: 'btn btn-secondary btn-sm' }
         ],
         ordering: false,

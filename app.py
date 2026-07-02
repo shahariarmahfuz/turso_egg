@@ -4,13 +4,27 @@ from flask_login import LoginManager
 from auth import auth_bp
 from routes import routes_bp
 
+import os
+from dotenv import load_dotenv
+from flask_migrate import Migrate
+
+load_dotenv()
+
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'super-secret-key-change-in-production'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///database.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+        'connect_args': {
+            'sslmode': 'require'
+        }
+    }
 
     db.init_app(app)
+    migrate = Migrate(app, db)
 
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
@@ -35,6 +49,7 @@ def create_app():
     from sale import sale_bp
     from sale_return import sale_return_bp
     from customer_collection import customer_collection_bp
+    from supplier_payment import supplier_payment_bp
     from account_reports import account_reports_bp
     from users import users_bp
     from product import product_bp
@@ -47,6 +62,7 @@ def create_app():
     app.register_blueprint(sale_bp)
     app.register_blueprint(sale_return_bp)
     app.register_blueprint(customer_collection_bp)
+    app.register_blueprint(supplier_payment_bp)
     app.register_blueprint(account_reports_bp)
     app.register_blueprint(users_bp, url_prefix='/users')
     app.register_blueprint(product_bp)

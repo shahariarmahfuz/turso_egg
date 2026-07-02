@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_required
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask_login import login_required, current_user
 from auth import admin_required
 from models import db, Product
 import random
@@ -121,3 +121,34 @@ def delete_product(id):
         db.session.rollback()
         flash("Cannot delete this product because it is referenced in other records.", "danger")
     return redirect(url_for('product.manage_product'))
+
+@product_bp.route('/product-list', methods=['GET'])
+@login_required
+def product_list():
+    return render_template('product_list.html')
+
+@product_bp.route('/api/list', methods=['GET'])
+@login_required
+def api_product_list():
+    products = Product.query.order_by(Product.id.desc()).all()
+    is_admin = current_user.role == 'Admin'
+    data = []
+    for p in products:
+        stock_status = "Out of Stock"
+        if p.current_stock > (p.min_stock_alert or 0):
+            stock_status = "In Stock"
+        elif p.current_stock > 0:
+            stock_status = "Low Stock"
+            
+        data.append({
+            'product_code': p.product_code,
+            'product_name': p.product_name,
+            'category': p.category or '',
+            'brand': p.brand or '',
+            'unit': p.unit or '',
+            'cost_price': float(p.cost_price) if is_admin and p.cost_price else 0.0,
+            'selling_price': float(p.selling_price) if p.selling_price else 0.0,
+            'current_stock': float(p.current_stock) if p.current_stock else 0.0,
+            'stock_status': stock_status
+        })
+    return jsonify({'data': data})

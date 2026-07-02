@@ -28,9 +28,20 @@ def add_sale():
             quantities = request.form.getlist('quantity[]')
             prices = request.form.getlist('price[]')
 
-            if not customer_id or not product_ids:
-                flash("Customer and at least one product are required.", "danger")
+            if not product_ids:
+                flash("At least one product is required.", "danger")
                 return redirect(url_for('sale.add_sale'))
+
+            if not customer_id:
+                cash_cust = Customer.query.filter_by(customer_name='Cash Customer').first()
+                if not cash_cust:
+                    cash_cust = Customer(customer_name='Cash Customer', contact_number='N/A')
+                    db.session.add(cash_cust)
+                    db.session.flush()
+                customer_id = cash_cust.id
+                is_cash_sale = True
+            else:
+                is_cash_sale = False
 
             sale_date = datetime.strptime(sale_date_str, '%Y-%m-%d').date() if sale_date_str else datetime.utcnow().date()
             
@@ -84,22 +95,23 @@ def add_sale():
                     prod.current_stock -= qty_f
             
             # Update Customer Due and Ledger
-            cust = Customer.query.get(customer_id)
-            if cust:
-                cust.current_balance += due_amount
-                
-                if due_amount > 0 or total_amount > 0:
-                    ledger_desc = f"Sale Invoice: {new_sale.invoice_no}"
-                    ledger = CustomerLedger(
-                        customer_id=cust.id,
-                        date=sale_date,
-                        invoice_no=new_sale.invoice_no,
-                        description=ledger_desc,
-                        debit=total_amount,
-                        credit=cash_paid,
-                        balance=cust.current_balance
-                    )
-                    db.session.add(ledger)
+            if not is_cash_sale:
+                cust = Customer.query.get(customer_id)
+                if cust:
+                    cust.current_balance += due_amount
+                    
+                    if due_amount > 0 or total_amount > 0:
+                        ledger_desc = f"Sale Invoice: {new_sale.invoice_no}"
+                        ledger = CustomerLedger(
+                            customer_id=cust.id,
+                            date=sale_date,
+                            invoice_no=new_sale.invoice_no,
+                            description=ledger_desc,
+                            debit=total_amount,
+                            credit=cash_paid,
+                            balance=cust.current_balance
+                        )
+                        db.session.add(ledger)
 
             db.session.commit()
             flash("Sale completed successfully.", "success")
@@ -172,6 +184,10 @@ def sale_report():
     to_date = request.args.get('to_date')
     invoice_no = request.args.get('invoice_no')
     customer_id = request.args.get('customer_id')
+
+    if not from_date and not to_date:
+        from_date = datetime.now().strftime('%Y-%m-%d')
+        to_date = datetime.now().strftime('%Y-%m-%d')
     
     query = Sale.query
     if from_date:
@@ -227,3 +243,16 @@ def sale_item_report():
     customers = Customer.query.all()
     return render_template('sale_item_report.html', items=items, totals=totals, customers=customers,
                            from_date=from_date, to_date=to_date, customer_id=customer_id)
+
+
+@login_required
+@sale_bp.route('/print_invoice/<int:id>')
+def print_invoice(id):
+    sale = Sale.query.get_or_404(id)
+    return render_template('print_invoice.html', sale=sale)
+
+@login_required
+@sale_bp.route('/sale/<int:id>/truck-challan')
+def print_truck_challan(id):
+    sale = Sale.query.get_or_404(id)
+    return render_template('print/truck_challan.html', sale=sale)

@@ -1,0 +1,239 @@
+/* print.css */
+
+:root {
+    --print-fs-normal: 12px;
+    --print-fs-small: 10px;
+    --print-fs-large: 14px;
+}
+
+/* Hidden by default on screen */
+.print-only {
+    display: none;
+}
+
+@media print {
+    @page {
+        size: A5 portrait;
+        margin: 10mm;
+    }
+
+    /* General Body Styles for Print */
+    body {
+        background-color: #fff !important;
+        color: #000 !important;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+        font-size: var(--print-fs-normal) !important;
+        line-height: 1.3 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Hide Unnecessary Elements */
+    #sidebar-wrapper,
+    .top-navbar,
+    .btn,
+    .dataTables_filter,
+    .dataTables_length,
+    .dataTables_info,
+    .dataTables_paginate,
+    .dt-buttons,
+    .alert,
+    form, /* Hides filter forms */
+    .card-header,
+    .navbar-search,
+    .user-dropdown-wrapper,
+    .d-print-none {
+        display: none !important;
+    }
+
+    /* Specific to DataTables */
+    .dataTables_wrapper .row:not(.dt-row) {
+        display: none !important;
+    }
+
+    /* Reset Wrapper & Content Area */
+    #wrapper {
+        display: block !important;
+        height: auto !important;
+    }
+    #page-content-wrapper {
+        margin: 0 !important;
+        width: 100% !important;
+        display: block !important;
+    }
+    .content-area {
+        padding: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+        margin-bottom: 0 !important;
+        background: transparent !important;
+    }
+    .card-body {
+        padding: 0 !important;
+    }
+
+    /* Show Print-Only Elements */
+    .print-only {
+        display: block !important;
+    }
+
+    /* Print Header Styles - Centered and Professional */
+    .print-header {
+        margin-bottom: 15px;
+    }
+    .print-header-top {
+        text-align: center;
+        border-bottom: 2px solid #000;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+    .print-logo-placeholder {
+        font-size: 28px;
+        margin-bottom: 5px;
+        color: #000;
+    }
+    .print-logo {
+        max-height: 50px;
+        margin-bottom: 5px;
+        display: inline-block;
+    }
+    .print-company-name {
+        font-size: 18px;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin: 0 0 4px 0;
+        color: #000 !important;
+    }
+    .print-company-address,
+    .print-company-contact {
+        font-size: var(--print-fs-small);
+        margin: 0 0 2px 0;
+        color: #000 !important;
+    }
+    
+    .print-report-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+        font-size: var(--print-fs-normal);
+        border-bottom: 1px dashed #ccc;
+        padding-bottom: 10px;
+    }
+    .print-info-left {
+        text-align: left;
+    }
+    .print-info-right {
+        text-align: right;
+    }
+    .print-report-title {
+        font-size: var(--print-fs-large);
+        font-weight: bold;
+        text-transform: uppercase;
+        margin: 0 0 5px 0;
+        color: #000 !important;
+    }
+    .print-filter-item {
+        font-size: var(--print-fs-small);
+        margin: 2px 0;
+        color: #000;
+    }
+    .print-meta {
+        font-size: var(--print-fs-small);
+        margin: 0;
+        color: #000 !important;
+        line-height: 1.4;
+    }
+
+    /* Table Styles for Print - Thin borders, Compact, Alternate Rows */
+    .table-responsive {
+        overflow: visible !important;
+    }
+    .table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-bottom: 15px !important;
+        font-size: var(--print-fs-normal) !important;
+        border: 1px solid #000 !important; /* Thin table border */
+        color: #000 !important;
+        background-color: transparent !important;
+    }
+    .table th, .table td {
+        padding: 4px 5px !important; /* Compact spacing */
+        border: 1px solid #000 !important; /* Thin border */
+        vertical-align: middle !important;
+        background-color: transparent !important;
+    }
+    .table thead th {
+        font-weight: bold !important;
+        background-color: #fff !important; 
+        color: #000 !important;
+        text-transform: uppercase;
+        font-size: var(--print-fs-small) !important;
+        border-bottom: 1px solid #000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .table tbody tr:nth-of-type(even) td {
+        background-color: #f7f7f7 !important; /* Very light gray */
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .table tfoot th, .table tfoot td {
+        font-weight: bold !important;
+        background-color: #fff !important;
+        color: #000 !important;
+        border-top: 1px solid #000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Alignments for Print - Right Align Numerics */
+    .table .text-end, .table .text-right, 
+    .table .text-danger, .table .text-success, .table .text-primary, .table .text-info {
+        text-align: right !important;
+    }
+    
+    /* Remove badges formatting */
+    .badge {
+        color: #000 !important;
+        background: none !important;
+        border: none !important;
+        padding: 0 !important;
+        font-weight: normal !important;
+    }
+
+    /* Print Footer Styles - Space for manual signatures */
+    .print-footer {
+        display: flex !important;
+        justify-content: space-between !important;
+        margin-top: 50px !important; /* Leave enough space for signature */
+        page-break-inside: avoid !important;
+    }
+    .print-footer .signature-box {
+        width: 30%;
+        text-align: center;
+    }
+    .print-footer .sig-line {
+        border-top: 1px solid #000;
+        padding-top: 5px;
+        font-size: var(--print-fs-small);
+        font-weight: bold;
+        color: #000 !important;
+        text-transform: uppercase;
+    }
+    
+    /* Ensure page breaks inside tables are avoided when possible */
+    .table tr {
+        page-break-inside: avoid !important;
+    }
+    
+    /* Specific overrides for h1 inside content-area if it was not hidden */
+    .content-area h1 {
+        display: none !important;
+    }
+}

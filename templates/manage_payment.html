@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Manage Payment</h1>
+    <a href="{{ url_for('supplier_payment.payment') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add Payment</a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-white">
+        <h6 class="m-0 font-weight-bold text-primary">Supplier Payments</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="dataTablePayment" width="100%" cellspacing="0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>SL</th>
+                        <th>Date</th>
+                        <th>Voucher</th>
+                        <th>Supplier</th>
+                        <th>Prev Due</th>
+                        <th>Discount</th>
+                        <th>Cash Paid</th>
+                        <th>Balance</th>
+                        <th>Method</th>
+                        <th style="width: 1%; white-space: nowrap;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in payments %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ c.date.strftime('%Y-%m-%d') }}</td>
+                        <td >{{ c.voucher_no }}</td>
+                        <td>{{ c.supplier.supplier_name }}</td>
+                        <td>৳{{ '%.2f' % c.previous_due }}</td>
+                        <td>৳{{ '%.2f' % c.discount }}</td>
+                        <td >৳{{ '%.2f' % c.cash_paid }}</td>
+                        <td >৳{{ '%.2f' % c.balance }}</td>
+                        <td><span class="badge bg-secondary">{{ c.payment_method }}</span></td>
+                        <td>
+                            <button type="button" class="btn btn-primary btn-sm text-white" title="Print Receipt" onclick="alert('Printing Voucher: {{ c.voucher_no }}')"><i class="fas fa-print"></i></button>
+{% if current_user.role == 'Admin' %}
+                            <form action="{{ url_for('supplier_payment.delete_payment', id=c.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this payment? Balances and ledgers will be reversed.');">
+                                <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#dataTablePayment').DataTable({
+        dom: '<"row"<"col-sm-12 col-md-4"l><"col-sm-12 col-md-4 text-center"B><"col-sm-12 col-md-4"f>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
+        buttons: [
+            { extend: 'excelHtml5', className: 'btn btn-success btn-sm' },
+            { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm' },
+            { extend: 'print', className: 'btn btn-secondary btn-sm' }
+        ],
+        order: [[1, 'desc'], [2, 'desc']]
+    });
+});
+</script>
+{% endblock %}

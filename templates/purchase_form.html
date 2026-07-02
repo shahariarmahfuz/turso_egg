@@ -36,7 +36,10 @@
             <h5 class="mb-3 border-bottom pb-2 mt-4">Products</h5>
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label class="form-label">Search Product by Code or Name</label>
+                    <label class="form-label d-flex justify-content-between align-items-center">
+                        <span>Search Product by Code or Name</span>
+                        <a href="{{ url_for('product.product_list') }}" target="_blank" class="btn btn-sm btn-outline-info">📦 Product List</a>
+                    </label>
                     <select class="form-select select2-product" id="product_search"></select>
                 </div>
             </div>
@@ -58,7 +61,7 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="4" class="text-end fw-bold">Line Total:</td>
+                            <td colspan="4" class="text-end ">Line Total:</td>
                             <td><input type="text" class="form-control form-control-sm" id="subtotal" name="subtotal" readonly value="0.00"></td>
                             <td colspan="2"></td>
                         </tr>
@@ -78,6 +81,7 @@
                     <select class="form-select" id="payment_method" name="payment_method">
                         <option value="Cash">Cash</option>
                         <option value="Due">Due</option>
+                        <option value="Partial">Partial</option>
                     </select>
                 </div>
                 <div class="col-md-6">
@@ -112,7 +116,7 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label text-danger fw-bold">Due Amount</label>
-                    <input type="text" class="form-control fw-bold" id="due_amount" readonly value="0.00">
+                    <input type="number" step="0.01" min="0" class="form-control calc-input fw-bold" id="due_amount" name="due_amount" value="0.00">
                 </div>
             </div>
             
@@ -121,6 +125,7 @@
         </form>
     </div>
 </div>
+
 {% endblock %}
 {% block scripts %}
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -185,6 +190,38 @@ $(document).ready(function() {
     $(document).on('input', '.qty-input, .price-input, .calc-input', function() { calculateTotals(); });
     $('#payment_method').on('change', function() { calculateTotals(); });
 
+    $('#cash_paid').on('input', function() {
+        let grandTotal = parseFloat($('#grand_total').val()) || 0;
+        let paid = parseFloat($(this).val()) || 0;
+        if (paid > grandTotal) {
+            alert("Cash Paid cannot exceed the payable amount!");
+            paid = grandTotal;
+            $(this).val(paid.toFixed(2));
+        }
+        if (paid < 0) {
+            paid = 0;
+            $(this).val(paid.toFixed(2));
+        }
+        let due = grandTotal - paid;
+        $('#due_amount').val(due.toFixed(2));
+    });
+
+    $('#due_amount').on('input', function() {
+        let grandTotal = parseFloat($('#grand_total').val()) || 0;
+        let due = parseFloat($(this).val()) || 0;
+        if (due > grandTotal) {
+            due = grandTotal;
+            $(this).val(due.toFixed(2));
+        }
+        if (due < 0) {
+            alert("Due Amount cannot be negative!");
+            due = 0;
+            $(this).val(due.toFixed(2));
+        }
+        let paid = grandTotal - due;
+        $('#cash_paid').val(paid.toFixed(2));
+    });
+
     function calculateTotals() {
         let subtotal = 0;
         $('#product_rows tr').each(function() {
@@ -202,14 +239,31 @@ $(document).ready(function() {
         let grandTotal = subtotal + transport + other - discount;
         $('#grand_total').val(grandTotal.toFixed(2));
 
-        let isCash = $('#payment_method').val() === 'Cash';
-        if(isCash) { $('#cash_paid').val(grandTotal.toFixed(2)); }
+        let method = $('#payment_method').val();
+        if(method === 'Cash') {
+            $('#cash_paid').val(grandTotal.toFixed(2));
+            $('#cash_paid').prop('readonly', true);
+            $('#due_amount').prop('readonly', true);
+        } else if (method === 'Due') {
+            $('#cash_paid').val('0.00');
+            $('#cash_paid').prop('readonly', true);
+            $('#due_amount').val(grandTotal.toFixed(2));
+            $('#due_amount').prop('readonly', true);
+        } else {
+            $('#cash_paid').prop('readonly', false);
+            $('#due_amount').prop('readonly', false);
+        }
 
         let paid = parseFloat($('#cash_paid').val()) || 0;
+        if (paid > grandTotal) {
+            paid = grandTotal;
+            $('#cash_paid').val(paid.toFixed(2));
+        }
         let due = grandTotal - paid;
         if(due < 0) due = 0;
         $('#due_amount').val(due.toFixed(2));
     }
 });
 </script>
+
 {% endblock %}
