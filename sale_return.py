@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from flask_login import login_required, current_user
+from flask_login import login_required
+from auth import admin_required, current_user
 from models import db, SaleReturn, SaleReturnItem, Customer, Product, CustomerLedger, Sale, SaleItem
 from datetime import datetime
 
@@ -146,6 +147,7 @@ def manage_sale_return():
 
 @sale_return_bp.route('/delete_sale_return/<int:id>', methods=['POST'])
 @login_required
+@admin_required
 def delete_sale_return(id):
     try:
         sr = SaleReturn.query.get_or_404(id)

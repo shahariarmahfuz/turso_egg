@@ -3,254 +3,333 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Management App</title>
+    <title>Business Management System</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     {% if current_user.is_authenticated %}
-    <div class="d-flex" id="wrapper">
-        
-        
-        <!-- Sidebar -->
-        <div class="bg-dark text-white border-end" id="sidebar-wrapper" style="overflow-y: auto;">
-            <div class="sidebar-heading text-center py-4 fs-4 fw-bold border-bottom">
-                <i class="fa-solid fa-building me-2"></i>BMS
+    <div id="wrapper">
+
+        <!-- ====== SIDEBAR ====== -->
+        <aside id="sidebar-wrapper">
+            <div class="sidebar-heading">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-store"></i>
+                </div>
+                <div class="sidebar-brand-text">
+                    <span class="brand-name">My Business</span>
+                    <span class="brand-sub">Dashboard Panel</span>
+                </div>
             </div>
-            
-            <div class="accordion accordion-flush w-100" id="sidebarAccordion">
-                <!-- Dashboard -->
-                <div class="accordion-item bg-dark border-0">
-                    <h2 class="accordion-header" id="headingDashboard">
-                        <a href="{{ url_for('routes.dashboard') }}" class="accordion-button bg-dark text-white shadow-none {% if request.endpoint == 'routes.dashboard' %}active-menu{% endif %} d-flex align-items-center" style="padding: 1rem 1.25rem; text-decoration: none;">
-                            <i class="fa-solid fa-gauge me-3" style="width: 20px;"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </h2>
-                </div>
 
-                <!-- Cash Out -->
-                <div class="accordion-item bg-dark border-0">
-                    <h2 class="accordion-header" id="headingcash_out">
-                        <button class="accordion-button bg-dark text-white shadow-none collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapsecash_out" aria-expanded="{% if 'cash_out.' in request.endpoint %}true{% else %}false{% endif %}" aria-controls="collapsecash_out" style="padding: 1rem 1.25rem;">
-                            <i class="fa-solid fa-money-bill-wave me-3" style="width: 20px;"></i>
-                            <span>Cash Out</span>
-                        </button>
-                    </h2>
-                    <div id="collapsecash_out" class="accordion-collapse collapse {% if 'cash_out.' in request.endpoint %}show{% endif %}" aria-labelledby="headingcash_out" data-bs-parent="#sidebarAccordion">
-                        <div class="accordion-body p-0">
-                            <div class="list-group list-group-flush bg-dark">
-                                <a href="{{ url_for('cash_out.add') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'cash_out.add' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Add</a>
-                                <a href="{{ url_for('cash_out.manage') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'cash_out.manage' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Manage</a>
+            <div id="sidebar-nav-scroll">
+                <div class="accordion accordion-flush w-100" id="sidebarAccordion">
+
+                    <!-- Dashboard -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <a href="{{ url_for('routes.dashboard') }}" class="accordion-button d-flex align-items-center {{ 'active-menu' if request.endpoint == 'routes.dashboard' else '' }}" style="text-decoration:none;">
+                                <i class="fas fa-chart-pie me-3" style="width:20px;"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </h2>
+                    </div>
+
+                    {% if current_user.role == 'Admin' %}
+                    <!-- Cash Out -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCashOut" aria-expanded="{% if 'cash_out.' in request.endpoint %}true{% else %}false{% endif %}">
+                                <i class="fas fa-wallet me-3" style="width:20px;"></i>
+                                <span>Cash Out</span>
+                            </button>
+                        </h2>
+                        <div id="collapseCashOut" class="accordion-collapse collapse {% if 'cash_out.' in request.endpoint %}show{% endif %}" data-bs-parent="#sidebarAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <a href="{{ url_for('cash_out.add') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'cash_out.add' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Add</a>
+                                    <a href="{{ url_for('cash_out.manage') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'cash_out.manage' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Manage</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                    {% endif %}
 
-                <!-- Expense -->
-                <div class="accordion-item bg-dark border-0">
-                    <h2 class="accordion-header" id="headingexpense">
-                        <button class="accordion-button bg-dark text-white shadow-none collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseexpense" aria-expanded="{% if 'expenses.' in request.endpoint %}true{% else %}false{% endif %}" aria-controls="collapseexpense" style="padding: 1rem 1.25rem;">
-                            <i class="fa-solid fa-file-invoice-dollar me-3" style="width: 20px;"></i>
-                            <span>Expense</span>
-                        </button>
-                    </h2>
-                    <div id="collapseexpense" class="accordion-collapse collapse {% if 'expenses.' in request.endpoint %}show{% endif %}" aria-labelledby="headingexpense" data-bs-parent="#sidebarAccordion">
-                        <div class="accordion-body p-0">
-                            <div class="list-group list-group-flush bg-dark">
-                                <a href="{{ url_for('expenses.add_expense_head') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'expenses.add_expense_head' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Add Head</a>
-                                <a href="{{ url_for('expenses.manage_expense_head') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'expenses.manage_expense_head' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Manage Head</a>
-                                <a href="{{ url_for('expenses.manage_daily_expense') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'expenses.manage_daily_expense' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Daily Expense</a>
-                                <a href="{{ url_for('expenses.manage_daily_expense') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'expenses.manage_daily_expense' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Manage Daily Expense</a>
+                    <!-- Expense -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExpense" aria-expanded="{% if 'expenses.' in request.endpoint %}true{% else %}false{% endif %}">
+                                <i class="fas fa-money-bill-wave me-3" style="width:20px;"></i>
+                                <span>Expense</span>
+                            </button>
+                        </h2>
+                        <div id="collapseExpense" class="accordion-collapse collapse {% if 'expenses.' in request.endpoint %}show{% endif %}" data-bs-parent="#sidebarAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <a href="{{ url_for('expenses.add_expense_head') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'expenses.add_expense_head' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Add Head</a>
+                                    <a href="{{ url_for('expenses.manage_expense_head') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'expenses.manage_expense_head' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Manage Head</a>
+                                    <a href="{{ url_for('expenses.manage_daily_expense') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'expenses.manage_daily_expense' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Daily Expense</a>
+                                    <a href="{{ url_for('expenses.manage_daily_expense') }}" class="list-group-item list-group-item-action"><i class="fa-solid fa-caret-right me-2"></i>Manage Daily Expense</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Supplier -->
-                <div class="accordion-item bg-dark border-0">
-                    <h2 class="accordion-header" id="headingsupplier">
-                        <button class="accordion-button bg-dark text-white shadow-none collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapsesupplier" aria-expanded="{% if 'supplier.' in request.endpoint %}true{% else %}false{% endif %}" aria-controls="collapsesupplier" style="padding: 1rem 1.25rem;">
-                            <i class="fa-solid fa-truck me-3" style="width: 20px;"></i>
-                            <span>Supplier</span>
-                        </button>
-                    </h2>
-                    <div id="collapsesupplier" class="accordion-collapse collapse {% if 'supplier.' in request.endpoint %}show{% endif %}" aria-labelledby="headingsupplier" data-bs-parent="#sidebarAccordion">
-                        <div class="accordion-body p-0">
-                            <div class="list-group list-group-flush bg-dark">
-                                <a href="{{ url_for('supplier.add_supplier') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'supplier.add_supplier' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Add Supplier</a>
-                                <a href="{{ url_for('supplier.manage_supplier') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'supplier.manage_supplier' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Manage Supplier</a>
-                                <a href="{{ url_for('supplier.supplier_ledger') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'supplier.supplier_ledger' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Supplier Ledger</a>
-                                <a href="{{ url_for('supplier.supplier_due_list') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'supplier.supplier_due_list' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Supplier Due List</a>
+                    <!-- Supplier -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSupplier" aria-expanded="{% if 'supplier.' in request.endpoint %}true{% else %}false{% endif %}">
+                                <i class="fas fa-truck me-3" style="width:20px;"></i>
+                                <span>Supplier</span>
+                            </button>
+                        </h2>
+                        <div id="collapseSupplier" class="accordion-collapse collapse {% if 'supplier.' in request.endpoint %}show{% endif %}" data-bs-parent="#sidebarAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <a href="{{ url_for('supplier.add_supplier') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'supplier.add_supplier' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Add Supplier</a>
+                                    <a href="{{ url_for('supplier.manage_supplier') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'supplier.manage_supplier' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Manage Supplier</a>
+                                    <a href="{{ url_for('supplier.supplier_ledger') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'supplier.supplier_ledger' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Supplier Ledger</a>
+                                    <a href="{{ url_for('supplier.supplier_due_list') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'supplier.supplier_due_list' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Supplier Due List</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Purchase -->
-                <div class="accordion-item bg-dark border-0">
-                    <h2 class="accordion-header" id="headingpurchase">
-                        <button class="accordion-button bg-dark text-white shadow-none collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapsepurchase" aria-expanded="{% if 'purchase.' in request.endpoint %}true{% else %}false{% endif %}" aria-controls="collapsepurchase" style="padding: 1rem 1.25rem;">
-                            <i class="fa-solid fa-cart-shopping me-3" style="width: 20px;"></i>
-                            <span>Purchase</span>
-                        </button>
-                    </h2>
-                    <div id="collapsepurchase" class="accordion-collapse collapse {% if 'purchase.' in request.endpoint %}show{% endif %}" aria-labelledby="headingpurchase" data-bs-parent="#sidebarAccordion">
-                        <div class="accordion-body p-0">
-                            <div class="list-group list-group-flush bg-dark">
-                                <a href="{{ url_for('purchase.add_purchase') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'purchase.add_purchase' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Add Purchase</a>
-                                <a href="{{ url_for('purchase.manage_purchase') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'purchase.manage_purchase' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Manage Purchase</a>
-                                <a href="{{ url_for('purchase.purchase_report') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'purchase.purchase_report' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Purchase Report</a>
-                                <a href="{{ url_for('purchase.purchase_items_report') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'purchase.purchase_items_report' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Purchase Items Report</a>
+                    <!-- Purchase -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePurchase" aria-expanded="{% if 'purchase.' in request.endpoint %}true{% else %}false{% endif %}">
+                                <i class="fas fa-shopping-cart me-3" style="width:20px;"></i>
+                                <span>Purchase</span>
+                            </button>
+                        </h2>
+                        <div id="collapsePurchase" class="accordion-collapse collapse {% if 'purchase.' in request.endpoint %}show{% endif %}" data-bs-parent="#sidebarAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <a href="{{ url_for('purchase.add_purchase') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'purchase.add_purchase' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Add Purchase</a>
+                                    <a href="{{ url_for('purchase.manage_purchase') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'purchase.manage_purchase' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Manage Purchase</a>
+                                    <a href="{{ url_for('purchase.purchase_report') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'purchase.purchase_report' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Purchase Report</a>
+                                    <a href="{{ url_for('purchase.purchase_items_report') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'purchase.purchase_items_report' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Purchase Items Report</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Purchase Return -->
-                <div class="accordion-item bg-dark border-0">
-                    <h2 class="accordion-header" id="headingpurchase_return">
-                        <button class="accordion-button bg-dark text-white shadow-none collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapsepurchase_return" aria-expanded="{% if 'purchase_return.' in request.endpoint %}true{% else %}false{% endif %}" aria-controls="collapsepurchase_return" style="padding: 1rem 1.25rem;">
-                            <i class="fa-solid fa-undo me-3" style="width: 20px;"></i>
-                            <span>Purchase Return</span>
-                        </button>
-                    </h2>
-                    <div id="collapsepurchase_return" class="accordion-collapse collapse {% if 'purchase_return.' in request.endpoint %}show{% endif %}" aria-labelledby="headingpurchase_return" data-bs-parent="#sidebarAccordion">
-                        <div class="accordion-body p-0">
-                            <div class="list-group list-group-flush bg-dark">
-                                <a href="{{ url_for('purchase_return.add_purchase_return') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'purchase_return.add_purchase_return' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Add Purchase Return</a>
-                                <a href="{{ url_for('purchase_return.manage_purchase_return') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'purchase_return.manage_purchase_return' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Manage Purchase Return</a>
-                                <a href="{{ url_for('purchase_return.purchase_return_report') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'purchase_return.purchase_return_report' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Purchase Return Report</a>
+                    <!-- Purchase Return -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePurchaseReturn" aria-expanded="{% if 'purchase_return.' in request.endpoint %}true{% else %}false{% endif %}">
+                                <i class="fas fa-undo-alt me-3" style="width:20px;"></i>
+                                <span>Purchase Return</span>
+                            </button>
+                        </h2>
+                        <div id="collapsePurchaseReturn" class="accordion-collapse collapse {% if 'purchase_return.' in request.endpoint %}show{% endif %}" data-bs-parent="#sidebarAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <a href="{{ url_for('purchase_return.add_purchase_return') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'purchase_return.add_purchase_return' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Add Purchase Return</a>
+                                    <a href="{{ url_for('purchase_return.manage_purchase_return') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'purchase_return.manage_purchase_return' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Manage Purchase Return</a>
+                                    <a href="{{ url_for('purchase_return.purchase_return_report') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'purchase_return.purchase_return_report' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Purchase Return Report</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Customer -->
-                <div class="accordion-item bg-dark border-0">
-                    <h2 class="accordion-header" id="headingcustomer">
-                        <button class="accordion-button bg-dark text-white shadow-none collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapsecustomer" aria-expanded="{% if 'customer.' in request.endpoint %}true{% else %}false{% endif %}" aria-controls="collapsecustomer" style="padding: 1rem 1.25rem;">
-                            <i class="fa-solid fa-users me-3" style="width: 20px;"></i>
-                            <span>Customer</span>
-                        </button>
-                    </h2>
-                    <div id="collapsecustomer" class="accordion-collapse collapse {% if 'customer.' in request.endpoint %}show{% endif %}" aria-labelledby="headingcustomer" data-bs-parent="#sidebarAccordion">
-                        <div class="accordion-body p-0">
-                            <div class="list-group list-group-flush bg-dark">
-                                <a href="{{ url_for('customer.add_customer') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'customer.add_customer' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Add Customer</a>
-                                <a href="{{ url_for('customer.manage_customer') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'customer.manage_customer' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Manage Customer</a>
-                                <a href="{{ url_for('customer.customer_ledger') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'customer.customer_ledger' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Customer Ledger</a>
-                                <a href="{{ url_for('customer.customer_due_list') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'customer.customer_due_list' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Customer Due List</a>
+                    <!-- Customer -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCustomer" aria-expanded="{% if 'customer.' in request.endpoint %}true{% else %}false{% endif %}">
+                                <i class="fas fa-users me-3" style="width:20px;"></i>
+                                <span>Customer</span>
+                            </button>
+                        </h2>
+                        <div id="collapseCustomer" class="accordion-collapse collapse {% if 'customer.' in request.endpoint %}show{% endif %}" data-bs-parent="#sidebarAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <a href="{{ url_for('customer.add_customer') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'customer.add_customer' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Add Customer</a>
+                                    <a href="{{ url_for('customer.manage_customer') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'customer.manage_customer' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Manage Customer</a>
+                                    <a href="{{ url_for('customer.customer_ledger') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'customer.customer_ledger' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Customer Ledger</a>
+                                    <a href="{{ url_for('customer.customer_due_list') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'customer.customer_due_list' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Customer Due List</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Sale -->
-                <div class="accordion-item bg-dark border-0">
-                    <h2 class="accordion-header" id="headingsale">
-                        <button class="accordion-button bg-dark text-white shadow-none collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapsesale" aria-expanded="{% if 'sale.' in request.endpoint %}true{% else %}false{% endif %}" aria-controls="collapsesale" style="padding: 1rem 1.25rem;">
-                            <i class="fa-solid fa-bag-shopping me-3" style="width: 20px;"></i>
-                            <span>Sale</span>
-                        </button>
-                    </h2>
-                    <div id="collapsesale" class="accordion-collapse collapse {% if 'sale.' in request.endpoint %}show{% endif %}" aria-labelledby="headingsale" data-bs-parent="#sidebarAccordion">
-                        <div class="accordion-body p-0">
-                            <div class="list-group list-group-flush bg-dark">
-                                <a href="{{ url_for('sale.add_sale') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'sale.add_sale' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Add Sale</a>
-                                <a href="{{ url_for('sale.manage_sale') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'sale.manage_sale' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Manage Sale</a>
-                                <a href="{{ url_for('sale.sale_report') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'sale.sale_report' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Sale Report</a>
-                                <a href="{{ url_for('sale.sale_item_report') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'sale.sale_item_report' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Sale Items Report</a>
+                    <!-- Sale -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSale" aria-expanded="{% if 'sale.' in request.endpoint %}true{% else %}false{% endif %}">
+                                <i class="fas fa-cash-register me-3" style="width:20px;"></i>
+                                <span>Sale</span>
+                            </button>
+                        </h2>
+                        <div id="collapseSale" class="accordion-collapse collapse {% if 'sale.' in request.endpoint %}show{% endif %}" data-bs-parent="#sidebarAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <a href="{{ url_for('sale.add_sale') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'sale.add_sale' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Add Sale</a>
+                                    <a href="{{ url_for('sale.manage_sale') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'sale.manage_sale' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Manage Sale</a>
+                                    <a href="{{ url_for('sale.sale_report') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'sale.sale_report' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Sale Report</a>
+                                    <a href="{{ url_for('sale.sale_item_report') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'sale.sale_item_report' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Sale Items Report</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Sale Return -->
-                <div class="accordion-item bg-dark border-0">
-                    <h2 class="accordion-header" id="headingsale_return">
-                        <button class="accordion-button bg-dark text-white shadow-none collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapsesale_return" aria-expanded="{% if 'sale_return.' in request.endpoint %}true{% else %}false{% endif %}" aria-controls="collapsesale_return" style="padding: 1rem 1.25rem;">
-                            <i class="fa-solid fa-rotate-left me-3" style="width: 20px;"></i>
-                            <span>Sale Return</span>
-                        </button>
-                    </h2>
-                    <div id="collapsesale_return" class="accordion-collapse collapse {% if 'sale_return.' in request.endpoint %}show{% endif %}" aria-labelledby="headingsale_return" data-bs-parent="#sidebarAccordion">
-                        <div class="accordion-body p-0">
-                            <div class="list-group list-group-flush bg-dark">
-                                <a href="{{ url_for('sale_return.add_sale_return') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'sale_return.add_sale_return' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Add Sale Return</a>
-                                <a href="{{ url_for('sale_return.manage_sale_return') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'sale_return.manage_sale_return' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Manage Sale Return</a>
-                                <a href="{{ url_for('sale_return.sale_return_report') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'sale_return.sale_return_report' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Sale Return Report</a>
+                    <!-- Sale Return -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSaleReturn" aria-expanded="{% if 'sale_return.' in request.endpoint %}true{% else %}false{% endif %}">
+                                <i class="fas fa-exchange-alt me-3" style="width:20px;"></i>
+                                <span>Sale Return</span>
+                            </button>
+                        </h2>
+                        <div id="collapseSaleReturn" class="accordion-collapse collapse {% if 'sale_return.' in request.endpoint %}show{% endif %}" data-bs-parent="#sidebarAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <a href="{{ url_for('sale_return.add_sale_return') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'sale_return.add_sale_return' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Add Sale Return</a>
+                                    <a href="{{ url_for('sale_return.manage_sale_return') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'sale_return.manage_sale_return' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Manage Sale Return</a>
+                                    <a href="{{ url_for('sale_return.sale_return_report') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'sale_return.sale_return_report' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Sale Return Report</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Customer Collection -->
-                <div class="accordion-item bg-dark border-0">
-                    <h2 class="accordion-header" id="headingcustomer_collection">
-                        <button class="accordion-button bg-dark text-white shadow-none collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapsecustomer_collection" aria-expanded="{% if 'customer_collection.' in request.endpoint %}true{% else %}false{% endif %}" aria-controls="collapsecustomer_collection" style="padding: 1rem 1.25rem;">
-                            <i class="fa-solid fa-hand-holding-dollar me-3" style="width: 20px;"></i>
-                            <span>Customer Collection</span>
-                        </button>
-                    </h2>
-                    <div id="collapsecustomer_collection" class="accordion-collapse collapse {% if 'customer_collection.' in request.endpoint %}show{% endif %}" aria-labelledby="headingcustomer_collection" data-bs-parent="#sidebarAccordion">
-                        <div class="accordion-body p-0">
-                            <div class="list-group list-group-flush bg-dark">
-                                <a href="{{ url_for('customer_collection.collection') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'customer_collection.collection' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Collection</a>
-                                <a href="{{ url_for('customer_collection.manage_collection') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'customer_collection.manage_collection' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Manage Collection</a>
-                                <a href="{{ url_for('customer_collection.collections_report') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'customer_collection.collections_report' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Collections Report</a>
+                    <!-- Customer Collection -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCollection" aria-expanded="{% if 'customer_collection.' in request.endpoint %}true{% else %}false{% endif %}">
+                                <i class="fas fa-hand-holding-usd me-3" style="width:20px;"></i>
+                                <span>Customer Collection</span>
+                            </button>
+                        </h2>
+                        <div id="collapseCollection" class="accordion-collapse collapse {% if 'customer_collection.' in request.endpoint %}show{% endif %}" data-bs-parent="#sidebarAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <a href="{{ url_for('customer_collection.collection') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'customer_collection.collection' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Collection</a>
+                                    <a href="{{ url_for('customer_collection.manage_collection') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'customer_collection.manage_collection' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Manage Collection</a>
+                                    <a href="{{ url_for('customer_collection.collections_report') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'customer_collection.collections_report' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Collections Report</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Account Reports -->
-                <div class="accordion-item bg-dark border-0">
-                    <h2 class="accordion-header" id="headingaccount_reports">
-                        <button class="accordion-button bg-dark text-white shadow-none collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseaccount_reports" aria-expanded="{% if 'account_reports.' in request.endpoint %}true{% else %}false{% endif %}" aria-controls="collapseaccount_reports" style="padding: 1rem 1.25rem;">
-                            <i class="fa-solid fa-chart-line me-3" style="width: 20px;"></i>
-                            <span>Account Reports</span>
-                        </button>
-                    </h2>
-                    <div id="collapseaccount_reports" class="accordion-collapse collapse {% if 'account_reports.' in request.endpoint %}show{% endif %}" aria-labelledby="headingaccount_reports" data-bs-parent="#sidebarAccordion">
-                        <div class="accordion-body p-0">
-                            <div class="list-group list-group-flush bg-dark">
-                                <a href="{{ url_for('account_reports.expense_report') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'account_reports.expense_report' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Expense Report</a>
-                                <a href="{{ url_for('account_reports.income_report') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'account_reports.income_report' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Income Report</a>
-                                <a href="{{ url_for('account_reports.bank_report') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'account_reports.bank_report' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Bank Report</a>
-                                <a href="{{ url_for('account_reports.bank_statement') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'account_reports.bank_statement' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Bank Statement</a>
-                                <a href="{{ url_for('account_reports.cash_book') }}" class="list-group-item list-group-item-action bg-dark text-white border-0 py-2 ps-5 {{ 'active-menu' if request.endpoint == 'account_reports.cash_book' else '' }}"><i class="fa-solid fa-caret-right me-2 text-white-50"></i>Cash Book</a>
+                    <!-- Account Reports -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseReports" aria-expanded="{% if 'account_reports.' in request.endpoint %}true{% else %}false{% endif %}">
+                                <i class="fas fa-file-invoice-dollar me-3" style="width:20px;"></i>
+                                <span>Account Reports</span>
+                            </button>
+                        </h2>
+                        <div id="collapseReports" class="accordion-collapse collapse {% if 'account_reports.' in request.endpoint %}show{% endif %}" data-bs-parent="#sidebarAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <a href="{{ url_for('account_reports.expense_report') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'account_reports.expense_report' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Expense Report</a>
+                                    <a href="{{ url_for('account_reports.income_report') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'account_reports.income_report' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Income Report</a>
+                                    {% if current_user.role == 'Admin' %}
+                                    <a href="{{ url_for('account_reports.bank_report') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'account_reports.bank_report' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Bank Report</a>
+                                    <a href="{{ url_for('account_reports.bank_statement') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'account_reports.bank_statement' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Bank Statement</a>
+                                    <a href="{{ url_for('account_reports.cash_book') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'account_reports.cash_book' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Cash Book</a>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
+                    {% if current_user.role == 'Admin' %}
+                    <!-- User Management -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUsers" aria-expanded="{% if 'users.' in request.endpoint %}true{% else %}false{% endif %}">
+                                <i class="fas fa-user-cog me-3" style="width:20px;"></i>
+                                <span>User Management</span>
+                            </button>
+                        </h2>
+                        <div id="collapseUsers" class="accordion-collapse collapse {% if 'users.' in request.endpoint %}show{% endif %}" data-bs-parent="#sidebarAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <a href="{{ url_for('users.add_user') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'users.add_user' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Add User</a>
+                                    <a href="{{ url_for('users.manage_users') }}" class="list-group-item list-group-item-action {{ 'active-menu' if request.endpoint == 'users.manage_users' else '' }}"><i class="fa-solid fa-caret-right me-2"></i>Manage Users</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Settings -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <a href="{{ url_for('users.settings') }}" class="accordion-button d-flex align-items-center {{ 'active-menu' if request.endpoint == 'users.settings' else '' }}" style="text-decoration:none;">
+                                <i class="fas fa-cogs me-3" style="width:20px;"></i>
+                                <span>Settings</span>
+                            </a>
+                        </h2>
+                    </div>
+                    {% endif %}
+
+                </div>
             </div>
-        </div>
-        <!-- /#sidebar-wrapper -->
 
+            <div class="sidebar-footer">
+                <p class="mb-0">&copy; 2026 My Business</p>
+            </div>
+        </aside>
+        <!-- /SIDEBAR -->
 
+        <!-- ====== PAGE CONTENT ====== -->
+        <div id="page-content-wrapper">
 
-        <!-- Page Content -->
-        <div id="page-content-wrapper" class="w-100">
-            <!-- Top Navigation -->
-            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-                <div class="container-fluid">
-                    <button class="btn btn-outline-secondary" id="sidebarToggle">
-                        <i class="fa-solid fa-bars"></i>
+            <!-- Top Navbar -->
+            <header class="top-navbar">
+                <div class="navbar-left">
+                    <button class="navbar-toggle-btn" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
                     </button>
-                    <div class="ms-auto d-flex align-items-center">
-                        <span class="me-3 fw-bold text-secondary">Welcome, {{ current_user.username }}</span>
-                        <a href="{{ url_for('auth.logout') }}" class="btn btn-danger btn-sm">Logout</a>
+                    <div class="navbar-page-title d-none d-md-block">
+                        <h2>{% block page_title %}Dashboard{% endblock %}</h2>
+                        <p>{% block page_subtitle %}Welcome! Today's overall business status{% endblock %}</p>
                     </div>
                 </div>
-            </nav>
+                <div class="navbar-right">
+                    <div class="navbar-search d-none d-md-block">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="navbar-search-input" placeholder="Search...">
+                    </div>
 
-            <div class="container-fluid p-4">
+                    <!-- User Profile Dropdown -->
+                    <div class="user-dropdown-wrapper dropdown">
+                        <a href="#" class="user-dropdown-toggle dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="true">
+                            <div class="user-avatar">{{ current_user.name[0] | upper if current_user.name else current_user.username[0] | upper }}</div>
+                            <div class="user-dropdown-info d-none d-md-block">
+                                <span class="uname">{{ current_user.name if current_user.name else current_user.username | capitalize }}</span>
+                                <span class="urole">{{ current_user.role }}</span>
+                            </div>
+                            <i class="fas fa-chevron-down d-none d-md-block" style="font-size:0.65rem; color:#94a3b8;"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
+                            <li>
+                                <div class="dropdown-header-custom">
+                                    <div class="dh-name">Logged in as</div>
+                                    <div class="dh-name">{{ current_user.name if current_user.name else current_user.username | capitalize }}</div>
+                                    <div class="dh-email">Role: {{ current_user.role }}</div>
+                                </div>
+                            </li>
+                            <li><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{{ url_for('users.profile') }}"><i class="fas fa-user-circle" style="color:#6366f1;width:18px;"></i> Member Profile</a></li>
+                            {% if current_user.role == 'Admin' %}
+                            <li><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{{ url_for('users.settings') }}"><i class="fas fa-cog" style="color:#64748b;width:18px;"></i> Settings</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger fw-semibold" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt" style="width:18px;"></i> Log Out</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-area">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
@@ -265,7 +344,8 @@
                 {% block content %}{% endblock %}
             </div>
         </div>
-        <!-- /#page-content-wrapper -->
+        <!-- /PAGE CONTENT -->
+
     </div>
     {% else %}
         <div class="container mt-5">

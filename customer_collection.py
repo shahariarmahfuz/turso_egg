@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from flask_login import login_required, current_user
+from flask_login import login_required
+from auth import admin_required, current_user
 from models import db, CustomerCollection, Customer, CustomerLedger, CashLedger
 from datetime import datetime
 
@@ -109,6 +110,7 @@ def manage_collection():
 
 @customer_collection_bp.route('/delete_collection/<int:id>', methods=['POST'])
 @login_required
+@admin_required
 def delete_collection(id):
     try:
         col = CustomerCollection.query.get_or_404(id)

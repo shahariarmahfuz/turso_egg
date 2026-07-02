@@ -7,9 +7,17 @@ import string
 db = SQLAlchemy()
 
 class Admin(UserMixin, db.Model):
+    __tablename__ = 'admin'
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
+    email = db.Column(db.String(150), unique=True, nullable=True)
+    phone = db.Column(db.String(50), nullable=True)
     password = db.Column(db.String(256), nullable=False)
+    role = db.Column(db.String(50), nullable=False, default='Employee')
+    status = db.Column(db.String(50), nullable=False, default='Active')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 def generate_head_code():
     return 'EH-' + ''.join(random.choices(string.digits, k=4))

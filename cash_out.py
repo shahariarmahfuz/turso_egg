@@ -1,12 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required
+from auth import admin_required
 from models import db, CashOut
 from datetime import datetime
 
 cash_out_bp = Blueprint('cash_out', __name__, url_prefix='/cash_out')
 
-@login_required
 @cash_out_bp.route('/add', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def add():
     if request.method == 'POST':
         date_str = request.form.get('date')
@@ -35,14 +37,16 @@ def add():
             
     return render_template('cash_out_form.html', action="Add")
 
-@login_required
 @cash_out_bp.route('/manage')
+@login_required
+@admin_required
 def manage():
     records = CashOut.query.order_by(CashOut.date.desc(), CashOut.id.desc()).all()
     return render_template('manage_cash_out.html', records=records)
 
-@login_required
 @cash_out_bp.route('/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def edit(id):
     record = CashOut.query.get_or_404(id)
     if request.method == 'POST':
@@ -69,11 +73,15 @@ def edit(id):
             
     return render_template('cash_out_form.html', action="Edit", record=record)
 
-@login_required
 @cash_out_bp.route('/delete/<int:id>', methods=['POST'])
+@login_required
+@admin_required
 def delete(id):
     record = CashOut.query.get_or_404(id)
-    db.session.delete(record)
-    db.session.commit()
-    flash("Cash Out record deleted successfully.", "success")
+    try:
+        db.session.delete(record)
+        db.session.commit()
+        flash("Record deleted successfully.", "success")
+    except Exception as e:
+        flash(f"Error deleting record: {e}", "danger")
     return redirect(url_for('cash_out.manage'))

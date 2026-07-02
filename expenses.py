@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required
+from auth import admin_required
 from models import db, ExpenseHead, ExpenseEntry
 from datetime import datetime
 

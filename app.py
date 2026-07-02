@@ -29,8 +29,6 @@ def create_app():
 
     from supplier import supplier_bp
     from cash_out import cash_out_bp
-    app.register_blueprint(cash_out_bp)
-
     from purchase import purchase_bp
     from purchase_return import purchase_return_bp
     from customer import customer_bp
@@ -38,6 +36,9 @@ def create_app():
     from sale_return import sale_return_bp
     from customer_collection import customer_collection_bp
     from account_reports import account_reports_bp
+    from users import users_bp
+
+    app.register_blueprint(cash_out_bp)
     app.register_blueprint(supplier_bp)
     app.register_blueprint(purchase_bp)
     app.register_blueprint(purchase_return_bp)
@@ -46,8 +47,7 @@ def create_app():
     app.register_blueprint(sale_return_bp)
     app.register_blueprint(customer_collection_bp)
     app.register_blueprint(account_reports_bp)
-
-
+    app.register_blueprint(users_bp, url_prefix='/users')
 
     with app.app_context():
         db.create_all()

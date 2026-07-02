@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required
+from auth import admin_required
 from models import db, Purchase, PurchaseItem, Supplier, Product, PurchaseReturn, PurchaseReturnItem
 from datetime import datetime
 

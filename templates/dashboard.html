@@ -1,150 +1,160 @@
 {% extends "layout.html" %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Welcome! Today's overall business status{% endblock %}
 {% block content %}
-<h2 class="mb-4">Dashboard Summary</h2>
-<div class="row g-4">
-    <!-- Card 1 -->
-    <div class="col-xl-3 col-md-6">
-        <div class="card bg-primary text-white shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">Cash Sale</div>
-                        <div class="h5 mb-0 font-weight-bold">${{ '%.2f' % data.cash_sale }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-coins fa-2x text-white-50"></i>
-                    </div>
-                </div>
+
+<!-- Date Bar -->
+<div class="date-bar">
+    <div class="date-text">
+        <div class="dt-label">Today's Date</div>
+        <div class="dt-value"><i class="fas fa-calendar-day me-2" style="color:#6366f1;"></i><span id="dashDate"></span></div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('account_reports.income_report') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-download me-1"></i> View Report</a>
+        <a href="{{ url_for('sale.add_sale') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i> New Sale</a>
+    </div>
+</div>
+
+<!-- Top Stats Cards (White) -->
+<div class="row g-4 mb-4">
+
+    <!-- Cash Sale -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card">
+            <div class="card-bg-circle bg-emerald-circle"></div>
+            <div class="d-flex align-items-center justify-content-between mb-3 position-relative">
+                <div class="card-icon icon-emerald"><i class="fas fa-coins"></i></div>
             </div>
+            <div class="card-label">Cash Sale</div>
+            <div class="card-value">৳ {{ '{:,.2f}'.format(data.cash_sale) }}</div>
+            <div class="card-sub">Total Cash Sales</div>
         </div>
     </div>
-    <!-- Card 2 -->
-    <div class="col-xl-3 col-md-6">
-        <div class="card bg-success text-white shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">Cash Purchase</div>
-                        <div class="h5 mb-0 font-weight-bold">${{ '%.2f' % data.cash_purchase }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-shopping-cart fa-2x text-white-50"></i>
-                    </div>
-                </div>
+
+    <!-- Cash Purchase -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card">
+            <div class="card-bg-circle bg-blue-circle"></div>
+            <div class="d-flex align-items-center justify-content-between mb-3 position-relative">
+                <div class="card-icon icon-blue"><i class="fas fa-shopping-cart"></i></div>
             </div>
+            <div class="card-label">Cash Purchase</div>
+            <div class="card-value">৳ {{ '{:,.2f}'.format(data.cash_purchase) }}</div>
+            <div class="card-sub">Total Cash Purchases</div>
         </div>
     </div>
-    <!-- Card 3 -->
-    <div class="col-xl-3 col-md-6">
-        <div class="card bg-warning text-white shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">Sale Due</div>
-                        <div class="h5 mb-0 font-weight-bold">${{ '%.2f' % data.sale_due }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-file-invoice-dollar fa-2x text-white-50"></i>
-                    </div>
-                </div>
+
+    <!-- Sale Due -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card">
+            <div class="card-bg-circle bg-amber-circle"></div>
+            <div class="d-flex align-items-center justify-content-between mb-3 position-relative">
+                <div class="card-icon icon-amber"><i class="fas fa-file-invoice"></i></div>
             </div>
+            <div class="card-label">Sale Due</div>
+            <div class="card-value">৳ {{ '{:,.2f}'.format(data.sale_due) }}</div>
+            <div class="card-sub">Credit Sales</div>
         </div>
     </div>
-    <!-- Card 4 -->
-    <div class="col-xl-3 col-md-6">
-        <div class="card bg-danger text-white shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">Purchase Due</div>
-                        <div class="h5 mb-0 font-weight-bold">${{ '%.2f' % data.purchase_due }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-file-invoice fa-2x text-white-50"></i>
-                    </div>
-                </div>
+
+    <!-- Purchase Due -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card">
+            <div class="card-bg-circle bg-rose-circle"></div>
+            <div class="d-flex align-items-center justify-content-between mb-3 position-relative">
+                <div class="card-icon icon-rose"><i class="fas fa-hand-holding-usd"></i></div>
             </div>
+            <div class="card-label">Purchase Due</div>
+            <div class="card-value">৳ {{ '{:,.2f}'.format(data.purchase_due) }}</div>
+            <div class="card-sub">Credit Purchases</div>
         </div>
     </div>
-    <!-- Card 5 -->
-    <div class="col-xl-3 col-md-6">
-        <div class="card bg-info text-white shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">Sale Return</div>
-                        <div class="h5 mb-0 font-weight-bold">${{ '%.2f' % data.sale_return }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-undo fa-2x text-white-50"></i>
-                    </div>
-                </div>
+
+</div>
+
+<!-- Second Row Cards (Gradient) -->
+<div class="row g-4 mb-4">
+
+    <!-- Sale Return -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card-gradient bg-gradient-purple">
+            <i class="fas fa-undo-alt gradient-bg-icon"></i>
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="gradient-icon"><i class="fas fa-undo-alt"></i></div>
             </div>
+            <div class="card-label">Sale Return</div>
+            <div class="card-value">৳ {{ '{:,.2f}'.format(data.sale_return) }}</div>
+            <div class="card-sub">Total Returned Sales</div>
         </div>
     </div>
-    <!-- Card 6 -->
-    <div class="col-xl-3 col-md-6">
-        <div class="card bg-secondary text-white shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">Sale Income</div>
-                        <div class="h5 mb-0 font-weight-bold">${{ '%.2f' % data.sale_income }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-hand-holding-usd fa-2x text-white-50"></i>
-                    </div>
-                </div>
+
+    <!-- Sale Income -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card-gradient bg-gradient-teal">
+            <i class="fas fa-chart-line gradient-bg-icon"></i>
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="gradient-icon"><i class="fas fa-chart-line"></i></div>
             </div>
+            <div class="card-label">Sale Income</div>
+            <div class="card-value">৳ {{ '{:,.2f}'.format(data.sale_income) }}</div>
+            <div class="card-sub">Total Sales Income</div>
         </div>
     </div>
-    <!-- Card 7 -->
-    <div class="col-xl-3 col-md-6">
-        <div class="card bg-dark text-white shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">Return Due</div>
-                        <div class="h5 mb-0 font-weight-bold">${{ '%.2f' % data.return_due }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-receipt fa-2x text-white-50"></i>
-                    </div>
-                </div>
+
+    <!-- Return Due -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card-gradient bg-gradient-orange">
+            <i class="fas fa-exclamation-circle gradient-bg-icon"></i>
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="gradient-icon"><i class="fas fa-exclamation-triangle"></i></div>
             </div>
+            <div class="card-label">Return Due</div>
+            <div class="card-value">৳ {{ '{:,.2f}'.format(data.return_due) }}</div>
+            <div class="card-sub">Unpaid Returns</div>
         </div>
     </div>
-    <!-- Card 8 -->
-    <div class="col-xl-3 col-md-6">
-        <div class="card bg-light text-dark shadow h-100 py-2 border-secondary">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">Expense</div>
-                        <div class="h5 mb-0 font-weight-bold">${{ '%.2f' % data.expense }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-money-bill-wave fa-2x text-secondary"></i>
-                    </div>
-                </div>
+
+    <!-- Expense -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card-gradient bg-gradient-slate">
+            <i class="fas fa-receipt gradient-bg-icon"></i>
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="gradient-icon"><i class="fas fa-receipt"></i></div>
             </div>
+            <div class="card-label">Expense</div>
+            <div class="card-value">৳ {{ '{:,.2f}'.format(data.expense) }}</div>
+            <div class="card-sub">Total Expenses</div>
         </div>
     </div>
-    <!-- Card 9: Cash Out -->
-    <div class="col-xl-3 col-md-6">
-        <div class="card bg-primary text-white shadow h-100 py-2 border-primary">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">Cash Out</div>
-                        <div class="h5 mb-0 font-weight-bold">${{ '%.2f' % data.cash_out }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-money-bill-wave fa-2x text-white-50"></i>
-                    </div>
-                </div>
+
+</div>
+
+<!-- Third Row: Cash Out card -->
+{% if current_user.role == 'Admin' %}
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card-gradient bg-gradient-indigo">
+            <i class="fas fa-wallet gradient-bg-icon"></i>
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="gradient-icon"><i class="fas fa-wallet"></i></div>
             </div>
+            <div class="card-label">Cash Out</div>
+            <div class="card-value">৳ {{ '{:,.2f}'.format(data.cash_out) }}</div>
+            <div class="card-sub">Total Cash Out</div>
         </div>
     </div>
 </div>
+{% endif %}
+
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const el = document.getElementById('dashDate');
+    if(el) el.textContent = days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + String(now.getDate()).padStart(2,'0') + ', ' + now.getFullYear();
+});
+</script>
 {% endblock %}

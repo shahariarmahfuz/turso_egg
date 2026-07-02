@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request
 from flask_login import login_required
+from auth import admin_required
 from models import db, ExpenseEntry, ExpenseHead, Sale, SaleReturn, Purchase, PurchaseItem, CashLedger, Bank, BankTransaction
 from datetime import datetime
 from sqlalchemy import func
@@ -84,6 +85,7 @@ def income_report():
 
 @account_reports_bp.route('/bank_report')
 @login_required
+@admin_required
 def bank_report():
     # Fetch all banks
     banks = Bank.query.order_by(Bank.bank_name).all()
@@ -91,6 +93,7 @@ def bank_report():
 
 @account_reports_bp.route('/bank_statement')
 @login_required
+@admin_required
 def bank_statement():
     from_date = request.args.get('from_date')
     to_date = request.args.get('to_date')
@@ -135,6 +138,7 @@ def bank_statement():
 
 @account_reports_bp.route('/cash_book')
 @login_required
+@admin_required
 def cash_book():
     from_date = request.args.get('from_date')
     to_date = request.args.get('to_date')

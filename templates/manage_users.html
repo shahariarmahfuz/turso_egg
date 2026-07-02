@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block page_title %}Manage Users{% endblock %}
+{% block page_subtitle %}List of all system users{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold">User List</h5>
+        <a href="{{ url_for('users.add_user') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i> Add User</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>{{ u.name or '' }}</td>
+                        <td>{{ u.username }}</td>
+                        <td>
+                            {% if u.role == 'Admin' %}
+                            <span class="badge bg-indigo text-white" style="background:#6366f1;">Admin</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Employee</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.status == 'Active' %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '' }}</td>
+                        <td>
+                            <a href="{{ url_for('users.edit_user', id=u.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
+                            {% if u.id != current_user.id %}
+                            <form action="{{ url_for('users.delete_user', id=u.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete user?');">
+                                <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

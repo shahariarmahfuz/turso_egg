@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% block page_title %}Edit User{% endblock %}
+{% block page_subtitle %}Modify user details and permissions{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6 mx-auto">
+        <div class="card">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">Edit User</h5>
+            </div>
+            <div class="card-body p-4">
+                <form action="{{ url_for('users.edit_user', id=user.id) }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label text-muted fw-bold text-xs">NAME</label>
+                        <input type="text" name="name" class="form-control" value="{{ user.name or '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted fw-bold text-xs">USERNAME (Read Only)</label>
+                        <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted fw-bold text-xs">EMAIL</label>
+                        <input type="email" name="email" class="form-control" value="{{ user.email or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted fw-bold text-xs">PHONE NUMBER</label>
+                        <input type="text" name="phone" class="form-control" value="{{ user.phone or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted fw-bold text-xs">ROLE</label>
+                        <select name="role" class="form-select" required>
+                            <option value="Employee" {% if user.role == 'Employee' %}selected{% endif %}>Employee</option>
+                            <option value="Admin" {% if user.role == 'Admin' %}selected{% endif %}>Admin</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted fw-bold text-xs">STATUS</label>
+                        <select name="status" class="form-select" required>
+                            <option value="Active" {% if user.status == 'Active' %}selected{% endif %}>Active</option>
+                            <option value="Inactive" {% if user.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted fw-bold text-xs">NEW PASSWORD (Leave blank to keep current)</label>
+                        <input type="password" name="password" class="form-control">
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">Update User</button>
+                        <a href="{{ url_for('users.manage_users') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
