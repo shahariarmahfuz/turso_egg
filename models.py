@@ -22,6 +22,9 @@ class Business(db.Model):
     status = db.Column(db.String(50), default='Active')
     created_at = db.Column(db.DateTime, default=dhaka_now)
 
+def generate_avatar_seed():
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+
 class Admin(UserMixin, db.Model):
     __tablename__ = 'admin'
     id = db.Column(db.Integer, primary_key=True)
@@ -33,6 +36,7 @@ class Admin(UserMixin, db.Model):
     password = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(50), nullable=False, default='Employee')
     status = db.Column(db.String(50), nullable=False, default='Active')
+    avatar_seed = db.Column(db.String(50), nullable=True, default=generate_avatar_seed)
     created_at = db.Column(db.DateTime, default=dhaka_now)
     updated_at = db.Column(db.DateTime, default=dhaka_now, onupdate=dhaka_now)
 

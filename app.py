@@ -100,7 +100,9 @@ def create_app():
     from account_reports import account_reports_bp
     from users import users_bp
     from product import product_bp
+    from user_settings import user_settings_bp
 
+    app.register_blueprint(user_settings_bp)
     app.register_blueprint(expenses_bp, url_prefix=business_prefix + '/expenses')
     app.register_blueprint(cash_out_bp, url_prefix=business_prefix + '/cash_out')
     app.register_blueprint(supplier_bp, url_prefix=business_prefix + '/supplier')
@@ -114,6 +116,10 @@ def create_app():
     app.register_blueprint(account_reports_bp, url_prefix=business_prefix + '/account_reports')
     app.register_blueprint(users_bp, url_prefix=business_prefix + '/users')
     app.register_blueprint(product_bp, url_prefix=business_prefix + '/product')
+
+    @app.route('/status')
+    def status():
+        return 'Status: OK', 200
 
     @app.route('/')
     def index():

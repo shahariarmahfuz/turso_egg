@@ -347,7 +347,9 @@
                     <!-- User Profile Dropdown -->
                     <div class="user-dropdown-wrapper dropdown">
                         <a href="#" class="user-dropdown-toggle dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="true">
-                            <div class="user-avatar">{{ current_user.name[0] | upper if current_user.name else current_user.username[0] | upper }}</div>
+                            <div class="user-avatar" style="padding: 0; overflow: hidden; background: none;">
+                                <img src="https://api.dicebear.com/10.x/adventurer-neutral/svg?seed={{ current_user.avatar_seed }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
                             <div class="user-dropdown-info d-none d-md-block">
                                 <span class="uname">{{ current_user.name if current_user.name else current_user.username | capitalize }}</span>
                                 <span class="urole">{{ current_user.role }}</span>
@@ -363,8 +365,9 @@
                                 </div>
                             </li>
                             <li><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{{ url_for('users.profile') }}"><i class="fas fa-user-circle" style="color:#6366f1;width:18px;"></i> Member Profile</a></li>
+                            <li><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{{ url_for('user_settings.settings_page') }}"><i class="fas fa-user-cog" style="color:#0ea5e9;width:18px;"></i> User Settings</a></li>
                             {% if current_user.role == 'Admin' %}
-                            <li><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{{ url_for('users.settings') }}"><i class="fas fa-cog" style="color:#64748b;width:18px;"></i> Settings</a></li>
+                            <li><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{{ url_for('users.settings') }}"><i class="fas fa-cog" style="color:#64748b;width:18px;"></i> System Settings</a></li>
                             {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger fw-semibold" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt" style="width:18px;"></i> Log Out</a></li>
