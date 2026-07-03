@@ -120,15 +120,52 @@ def create_app():
         return redirect(url_for('site_admin.login'))
 
     with app.app_context():
-        # Ensure Site Admin exists
-        from werkzeug.security import generate_password_hash
+        # Ensure database is connected and initialized safely
         try:
-            if not Admin.query.filter_by(username='siteadmin', role='Site Admin').first():
-                site_admin = Admin(username='siteadmin', password=generate_password_hash('admin'), role='Site Admin')
-                db.session.add(site_admin)
-                db.session.commit()
-        except Exception:
-            pass
+            db.engine.connect()
+            print("Database connection verified.")
+
+            # Create tables if they do not exist
+            db.create_all()
+
+            # Attempt automatic migrations if there are model changes
+            try:
+                import flask_migrate
+                import os
+                
+                # Check if alembic exists, else initialize it
+                if not os.path.exists('migrations'):
+                    flask_migrate.init()
+                
+                # Automatically stamp and migrate
+                # Ignore failures as they might occur if migrations are already up-to-date or empty DB
+                try:
+                    flask_migrate.migrate(message="Automatic startup migration")
+                except Exception as e:
+                    print(f"Migration generation warning: {e}")
+                
+                try:
+                    flask_migrate.upgrade()
+                except Exception as e:
+                    print(f"Upgrade warning: {e}")
+                    
+            except Exception as e:
+                print(f"Migration phase skipped/error: {e}")
+
+            # Ensure Site Admin exists
+            from werkzeug.security import generate_password_hash
+            from models import Admin
+            try:
+                if not Admin.query.filter_by(username='siteadmin', role='Site Admin').first():
+                    site_admin = Admin(username='siteadmin', password=generate_password_hash('admin'), role='Site Admin')
+                    db.session.add(site_admin)
+                    db.session.commit()
+                    print("Initial Site Admin account created.")
+            except Exception as e:
+                print(f"Site Admin creation error: {e}")
+                
+        except Exception as e:
+            print(f"Startup check failed: {e}")
 
     return app
 
