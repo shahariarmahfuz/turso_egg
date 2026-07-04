@@ -28,6 +28,17 @@
 
             <div class="row mb-3">
                 <div class="col-md-4">
+                    <label class="form-label text-muted">Total Collection Received</label>
+                    <input type="text" class="form-control" id="total_collected" readonly value="0.00">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-info fw-bold">Current Outstanding Balance</label>
+                    <input type="text" class="form-control fw-bold" id="outstanding_balance" readonly value="0.00">
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
                     <label for="payment_method" class="form-label">Payment Method</label>
                     <select class="form-select" id="payment_method" name="payment_method">
                         <option value="Cash">Cash</option>
@@ -54,6 +65,7 @@
                 <div class="col-md-4">
                     <label for="cash_paid" class="form-label text-success fw-bold">Amount Paid</label>
                     <input type="number" step="0.01" min="0" class="form-control calc-input fw-bold" id="cash_paid" name="cash_paid" value="0">
+                    <div id="validation_msg" class="text-danger small mt-1" style="display:none;"></div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold text-primary">Current Balance</label>
@@ -68,7 +80,7 @@
                 </div>
             </div>
             
-            <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save"></i> Submit Collection</button>
+            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn"><i class="fas fa-save"></i> Submit Collection</button>
             <button type="button" class="btn btn-secondary btn-lg" onclick="location.reload();">Reset</button>
         </form>
     </div>
@@ -91,7 +103,18 @@ $(document).ready(function() {
         if(cid) {
             $.get('/customer_collection/api/get_customer_due/' + cid, function(data) {
                 prevDue = parseFloat(data.due) || 0;
+                let totalCollected = parseFloat(data.total_collected) || 0;
+
                 $('#previous_due').val(prevDue.toFixed(2));
+                $('#total_collected').val(totalCollected.toFixed(2));
+                $('#outstanding_balance').val(prevDue.toFixed(2));
+
+                // Reset input fields when customer changes
+                $('#discount').val(0);
+                $('#cash_paid').val(0);
+                $('#validation_msg').hide();
+                $('#submitBtn').prop('disabled', false);
+
                 calculateTotals();
             });
         }
@@ -119,22 +142,58 @@ $(document).ready(function() {
     function calculateTotals() {
         let discount = parseFloat($('#discount').val()) || 0;
         let paid = parseFloat($('#cash_paid').val()) || 0;
+        let maxAllowed = prevDue - discount;
         
-        if(discount + paid > prevDue) {
-            alert("Discount + Paid Amount cannot exceed Previous Due!");
+        if(maxAllowed < 0) maxAllowed = 0;
+
+        if(discount + paid > prevDue + 0.005) {
+            let msg = 'Discount + Paid Amount (' + (discount + paid).toFixed(2) + ') cannot exceed Previous Due (' + prevDue.toFixed(2) + ')!';
+            $('#validation_msg').text(msg).show();
+            $('#submitBtn').prop('disabled', true);
+
+            // Clamp the active field
             if($(document.activeElement).attr('id') === 'cash_paid') {
-                $('#cash_paid').val(0);
+                paid = maxAllowed;
+                $('#cash_paid').val(paid > 0 ? paid.toFixed(2) : 0);
             } else {
-                $('#discount').val(0);
+                discount = prevDue - paid;
+                if(discount < 0) discount = 0;
+                $('#discount').val(discount.toFixed(2));
             }
+            // Recalculate after clamping
             discount = parseFloat($('#discount').val()) || 0;
             paid = parseFloat($('#cash_paid').val()) || 0;
+            $('#validation_msg').hide();
+            $('#submitBtn').prop('disabled', false);
+        } else {
+            $('#validation_msg').hide();
+            $('#submitBtn').prop('disabled', false);
         }
 
         let balance = prevDue - discount - paid;
         if(balance < 0) balance = 0;
         $('#balance').val(balance.toFixed(2));
+        $('#outstanding_balance').val(balance.toFixed(2));
     }
+
+    // Form submission validation
+    $('#collectionForm').on('submit', function(e) {
+        let discount = parseFloat($('#discount').val()) || 0;
+        let paid = parseFloat($('#cash_paid').val()) || 0;
+        
+        if(discount + paid > prevDue + 0.005) {
+            e.preventDefault();
+            alert('Discount + Paid Amount cannot exceed Previous Due!');
+            return false;
+        }
+        
+        if(paid <= 0 && discount <= 0) {
+            e.preventDefault();
+            alert('Please enter an Amount Paid or Discount.');
+            return false;
+        }
+    });
 });
 </script>
 {% endblock %}
+

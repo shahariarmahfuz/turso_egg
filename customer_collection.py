@@ -1,17 +1,87 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required
 from auth import admin_required, current_user
-from models import db, CustomerCollection, Customer, CustomerLedger, CashLedger, dhaka_now
+from models import db, CustomerCollection, Customer, CustomerLedger, CashLedger, Sale, SaleReturn, dhaka_now
 from datetime import datetime
+from sqlalchemy import func
 
 customer_collection_bp = Blueprint('customer_collection', __name__, url_prefix='/customer_collection')
+
+
+def _calculate_customer_due(customer_id):
+    """
+    Dynamically compute a customer's actual outstanding due from all
+    completed transactions, instead of relying on the stored current_balance.
+
+    Formula:
+        Opening Balance (previous_balance)
+      + Total Sale Dues           (sum of Sale.due_amount)
+      - Total Sale Return Credits (sum of SaleReturn subtotal - discount)
+      - Total Collection Paid     (sum of CustomerCollection.cash_paid)
+      - Total Collection Discount (sum of CustomerCollection.discount)
+      = Current Outstanding Due
+    """
+    customer = Customer.query.get(customer_id)
+    if not customer:
+        return 0.0, None
+
+    opening = customer.previous_balance or 0.0
+
+    # Total due from sales (only the due portion — cash_paid at sale time is already settled)
+    total_sale_due = db.session.query(
+        func.coalesce(func.sum(Sale.due_amount), 0.0)
+    ).filter(Sale.customer_id == customer_id).scalar()
+
+    # Total credit from sale returns (subtotal - discount = total_amount returned)
+    total_return_credit = db.session.query(
+        func.coalesce(func.sum(SaleReturn.subtotal - SaleReturn.discount), 0.0)
+    ).filter(SaleReturn.customer_id == customer_id).scalar()
+
+    # Total collected (cash_paid + discount) from customer collections
+    total_collected_paid = db.session.query(
+        func.coalesce(func.sum(CustomerCollection.cash_paid), 0.0)
+    ).filter(CustomerCollection.customer_id == customer_id).scalar()
+
+    total_collected_discount = db.session.query(
+        func.coalesce(func.sum(CustomerCollection.discount), 0.0)
+    ).filter(CustomerCollection.customer_id == customer_id).scalar()
+
+    computed_due = (
+        opening
+        + float(total_sale_due)
+        - float(total_return_credit)
+        - float(total_collected_paid)
+        - float(total_collected_discount)
+    )
+
+    # Avoid tiny floating-point negatives
+    if computed_due < 0.005:
+        computed_due = 0.0
+
+    return round(computed_due, 2), customer
+
 
 @customer_collection_bp.route('/api/get_customer_due/<int:customer_id>')
 @login_required
 def get_customer_due(customer_id):
-    customer = Customer.query.get(customer_id)
-    if not customer: return jsonify({'due': 0})
-    return jsonify({'due': customer.current_balance})
+    computed_due, customer = _calculate_customer_due(customer_id)
+    if not customer:
+        return jsonify({'due': 0, 'total_collected': 0})
+
+    # Sync stored current_balance if it drifted out of sync
+    if abs((customer.current_balance or 0) - computed_due) > 0.005:
+        customer.current_balance = computed_due
+        db.session.commit()
+
+    # Also return total collections received for display
+    total_collected = db.session.query(
+        func.coalesce(func.sum(CustomerCollection.cash_paid), 0.0)
+    ).filter(CustomerCollection.customer_id == customer_id).scalar()
+
+    return jsonify({
+        'due': computed_due,
+        'total_collected': round(float(total_collected), 2)
+    })
 
 @customer_collection_bp.route('/collection', methods=['GET', 'POST'])
 @login_required
@@ -32,9 +102,10 @@ def collection():
                 flash("Customer not found.", "danger")
                 return redirect(url_for('customer_collection.collection'))
                 
-            previous_due = customer.current_balance
+            # Use dynamically computed due instead of stored current_balance
+            previous_due, _ = _calculate_customer_due(customer_id)
             
-            if cash_paid + discount > previous_due:
+            if cash_paid + discount > previous_due + 0.005:
                 flash("Cash Paid + Discount cannot exceed the Previous Due.", "danger")
                 return redirect(url_for('customer_collection.collection'))
                 
@@ -114,10 +185,7 @@ def manage_collection():
 def delete_collection(id):
     try:
         col = CustomerCollection.query.get_or_404(id)
-        
-        # Restore customer due
-        amount_to_restore = col.cash_paid + col.discount
-        col.customer.current_balance += amount_to_restore
+        customer = col.customer
         
         # Remove CustomerLedger manually
         ledgers = CustomerLedger.query.filter_by(invoice_no=col.voucher_no).all()
@@ -134,6 +202,12 @@ def delete_collection(id):
             db.session.delete(cash_lg)
 
         db.session.delete(col)
+        db.session.flush()
+
+        # Recalculate and sync customer balance from transaction history
+        computed_due, _ = _calculate_customer_due(customer.id)
+        customer.current_balance = computed_due
+
         db.session.commit()
         flash("Collection deleted and balances restored.", "success")
     except Exception as e:
