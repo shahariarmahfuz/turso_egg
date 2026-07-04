@@ -3,93 +3,202 @@
 {% block styles %}
 <style>
     body {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        min-height: 100vh;
-        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        margin: 0;
+        padding: 0;
     }
     
-    /* Center the container */
-    .container-fluid.pt-4 {
-        height: 100vh;
+    /* Override base template container to achieve perfect centering */
+    .container.mt-5 {
+        margin-top: 0 !important;
+        min-height: 100vh;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding-top: 0 !important;
+        padding: 20px;
+        max-width: 100%;
     }
 
-    .login-container {
+    .login-wrapper {
         width: 100%;
-        max-width: 420px;
-        padding: 15px;
+        max-width: 460px;
     }
+
     .login-card {
         background: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.03);
+        border: 1px solid rgba(226, 232, 240, 0.6);
         overflow: hidden;
+        padding: 40px;
     }
+
     .login-header {
-        background: #ffffff;
         text-align: center;
-        padding: 40px 30px 20px;
+        margin-bottom: 35px;
     }
+
+    .logo-area {
+        margin-bottom: 20px;
+    }
+
+    .logo-icon {
+        font-size: 2.25rem;
+        color: #0ea5e9;
+        background: #f0f9ff;
+        width: 72px;
+        height: 72px;
+        line-height: 72px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
     .login-header h3 {
-        color: #2c3e50;
+        color: #0f172a;
         font-weight: 700;
         margin-bottom: 8px;
-        font-size: 1.5rem;
+        font-size: 1.75rem;
+        letter-spacing: -0.5px;
     }
+
     .login-header p {
-        color: #7f8c8d;
-        font-size: 0.95rem;
+        color: #64748b;
+        font-size: 1rem;
         margin-bottom: 0;
+        font-weight: 400;
     }
-    .login-body {
-        padding: 10px 30px 40px;
+
+    .form-group {
+        margin-bottom: 20px;
     }
-    .form-floating > label {
-        color: #95a5a6;
-    }
-    .form-control {
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-    }
-    .form-control:focus {
-        border-color: #3498db;
-        box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.15);
-    }
-    .btn-login {
-        background-color: #3498db;
-        border-color: #3498db;
-        border-radius: 8px;
-        padding: 12px;
+
+    .form-label {
+        font-size: 0.9rem;
         font-weight: 600;
-        letter-spacing: 0.5px;
-        transition: all 0.2s ease-in-out;
+        color: #475569;
+        margin-bottom: 8px;
+        display: block;
     }
+
+    .input-group-custom {
+        position: relative;
+    }
+
+    .input-group-custom i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1rem;
+        transition: color 0.2s ease;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        height: 52px;
+        padding: 10px 16px 10px 48px;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        background-color: #f8fafc;
+        font-size: 1rem;
+        color: #1e293b;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .form-control-custom:focus {
+        border-color: #0ea5e9;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+        outline: none;
+    }
+
+    .form-control-custom:focus + i, 
+    .input-group-custom:focus-within i {
+        color: #0ea5e9;
+    }
+
+    .form-control-custom::placeholder {
+        color: #94a3b8;
+    }
+
+    .login-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        margin-top: 10px;
+    }
+
+    .form-check-label {
+        color: #64748b;
+        font-size: 0.95rem;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .form-check-input {
+        cursor: pointer;
+        width: 1.1rem;
+        height: 1.1rem;
+        margin-top: 0.15rem;
+    }
+
+    .form-check-input:checked {
+        background-color: #0ea5e9;
+        border-color: #0ea5e9;
+    }
+
+    .btn-login {
+        background-color: #0ea5e9;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        height: 52px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2), 0 2px 4px -1px rgba(14, 165, 233, 0.1);
+        cursor: pointer;
+    }
+
     .btn-login:hover {
-        background-color: #2980b9;
-        border-color: #2980b9;
+        background-color: #0284c7;
         transform: translateY(-1px);
+        box-shadow: 0 6px 10px -1px rgba(14, 165, 233, 0.3), 0 2px 4px -1px rgba(14, 165, 233, 0.1);
     }
-    .logo-area {
-        margin-bottom: 15px;
+    
+    .btn-login:active {
+        transform: translateY(0);
+        box-shadow: none;
     }
-    .logo-icon {
-        font-size: 2.5rem;
-        color: #3498db;
-        background: rgba(52, 152, 219, 0.1);
-        padding: 20px;
-        border-radius: 50%;
+
+    .btn-login i {
+        margin-left: 8px;
+        transition: transform 0.2s ease;
+    }
+
+    .btn-login:hover i {
+        transform: translateX(4px);
+    }
+
+    @media (max-width: 576px) {
+        .login-card {
+            padding: 30px 20px;
+        }
     }
 </style>
 {% endblock %}
 
 {% block login_content %}
-<div class="login-container">
-    <div class="card login-card">
+<div class="login-wrapper">
+    <div class="login-card">
         <div class="login-header">
             <div class="logo-area">
                 <i class="fas fa-chart-pie logo-icon"></i>
@@ -97,29 +206,37 @@
             <h3>Dashboard Login</h3>
             <p>Welcome back! Please enter your details.</p>
         </div>
-        <div class="card-body login-body">
-            <form method="POST" action="{{ url_for('auth.login') }}">
-                <div class="form-floating mb-3">
-                    <input class="form-control" id="inputUsername" name="username" type="text" placeholder="Username" required autofocus />
-                    <label for="inputUsername"><i class="fas fa-user me-2"></i>Username</label>
+        
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            <div class="form-group">
+                <label class="form-label" for="inputUsername">Username</label>
+                <div class="input-group-custom">
+                    <input class="form-control-custom" id="inputUsername" name="username" type="text" placeholder="Enter your username" required autofocus />
+                    <i class="fas fa-user"></i>
                 </div>
-                <div class="form-floating mb-3">
-                    <input class="form-control" id="inputPassword" name="password" type="password" placeholder="Password" required />
-                    <label for="inputPassword"><i class="fas fa-lock me-2"></i>Password</label>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="inputPassword">Password</label>
+                <div class="input-group-custom">
+                    <input class="form-control-custom" id="inputPassword" name="password" type="password" placeholder="Enter your password" required />
+                    <i class="fas fa-lock"></i>
                 </div>
-                <div class="form-check mb-4 mt-2">
+            </div>
+            
+            <div class="login-options">
+                <div class="form-check">
                     <input class="form-check-input" type="checkbox" value="1" id="rememberMe" name="remember">
-                    <label class="form-check-label text-muted" for="rememberMe">
+                    <label class="form-check-label" for="rememberMe">
                         Remember me
                     </label>
                 </div>
-                <div class="d-grid">
-                    <button class="btn btn-primary btn-login btn-lg" type="submit">
-                        Sign In <i class="fas fa-arrow-right ms-2"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
+            </div>
+            
+            <button class="btn-login" type="submit">
+                Sign In <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
     </div>
 </div>
 {% endblock %}
