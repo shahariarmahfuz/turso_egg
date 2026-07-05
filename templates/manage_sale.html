@@ -42,7 +42,7 @@
                             <a href="{{ url_for('sale.print_invoice', id=s.id) }}?autoprint=false" class="btn btn-info btn-sm text-white" title="View Invoice"><i class="fas fa-eye"></i></a>
                             <a href="{{ url_for('sale.print_invoice', id=s.id) }}" onclick="return popupPrint(this.href);" class="btn btn-primary btn-sm text-white" title="Print Invoice"><i class="fas fa-print"></i></a>
 {% if current_user.role == 'Admin' %}
-                            <a href="#" class="btn btn-warning btn-sm text-white" title="Edit (Coming Soon)" onclick="alert('Edit Sale {{ s.invoice_no }}'); return false;"><i class="fas fa-edit"></i></a>
+                            <a href="{{ url_for('sale.edit_sale', id=s.id) }}" class="btn btn-warning btn-sm text-white" title="Edit Sale"><i class="fas fa-edit"></i></a>
                             <form action="{{ url_for('sale.delete_sale', id=s.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete sale? Stock and customer balances will be restored.');">
                                 <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
                             </form>

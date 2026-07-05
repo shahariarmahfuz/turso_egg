@@ -76,6 +76,9 @@
                 <td>
                     <a href="{{ url_for('sale.print_invoice', id=s.id) }}" class="btn btn-primary btn-sm mb-1" onclick="return popupPrint(this.href);" title="Print Invoice"><i class="fas fa-file-invoice"></i></a>
                     <a href="{{ url_for('sale.print_truck_challan', id=s.id) }}" class="btn btn-info btn-sm mb-1 text-white" onclick="return popupPrint(this.href);" title="Print Truck Challan"><i class="fas fa-truck"></i></a>
+                    {% if current_user.role == 'Admin' %}
+                    <a href="{{ url_for('sale.edit_sale', id=s.id) }}" class="btn btn-warning btn-sm mb-1" title="Edit Sale"><i class="fas fa-edit"></i></a>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}

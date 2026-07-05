@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-4">
+    <div class="mb-3 py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Edit Sale ({{ sale.invoice_no }})</h6>
+    </div>
+    <div class="">
+        <form method="POST" id="saleForm">
+            <h5 class="mb-3 border-bottom pb-2">Customer Information</h5>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="customer_id" class="form-label">Customer</label>
+                    <select class="form-select select2-ajax" id="customer_id" name="customer_id" data-url="{{ url_for('customer.search_customer') }}" data-placeholder="Select Customer">
+                        {% if sale.customer %}
+                        <option value="{{ sale.customer_id }}" selected>{{ sale.customer.customer_name }}</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Address</label>
+                    <input type="text" class="form-control" id="cust_address" readonly disabled value="{{ sale.customer.address or '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Contact Number</label>
+                    <input type="text" class="form-control" id="cust_contact" readonly disabled value="{{ sale.customer.contact_number or '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-danger fw-bold">Previous Due</label>
+                    <input type="text" class="form-control fw-bold text-danger" id="previous_due" readonly value="0.00">
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="bill_number" class="form-label">Bill Number (Optional)</label>
+                    <input type="text" class="form-control" id="bill_number" name="bill_number" value="{{ sale.bill_number or '' }}">
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label text-success d-flex justify-content-between align-items-center">
+                        <span>Search Product (Barcode/Code/Name)</span>
+                        <a href="{{ url_for('product.product_list') }}" target="_blank" class="btn btn-sm btn-outline-info">📦 Product List</a>
+                    </label>
+                    <select class="form-select" id="product_search"></select>
+                </div>
+            </div>
+
+            <div class="table-responsive mb-4 mt-4">
+                <table class="table table-bordered table-sm" id="saleTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Product Code</th>
+                            <th>Product Name</th>
+                            <th>Stock</th>
+                            <th width="15%">Quantity</th>
+                            <th width="15%">Selling Price</th>
+                            <th width="15%">Total</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="product_rows">
+                        {% for item in items %}
+                        <tr>
+                            <td><input type="hidden" name="product_id[]" value="{{ item.product_id }}">{{ item.product.product_code }}</td>
+                            <td>{{ item.product.product_name }}</td>
+                            <td>{{ item.product.current_stock + item.quantity }}</td>
+                            <td><input type="number" step="0.01" min="0.01" class="form-control form-control-sm qty-input" name="quantity[]" value="{{ item.quantity }}" required></td>
+                            <td><input type="number" step="0.01" min="0" class="form-control form-control-sm price-input" name="price[]" value="{{ item.selling_price }}" required></td>
+                            <td><input type="text" class="form-control form-control-sm row-total" readonly value="{{ item.total_price }}"></td>
+                            <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-times"></i></button></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="5" class="text-end">Line Total:</td>
+                            <td><input type="text" class="form-control form-control-sm fw-bold" id="subtotal" name="subtotal" readonly value="{{ '%.2f' % sale.subtotal }}"></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <h5 class="mb-3 border-bottom pb-2 mt-4">Payment & Summary</h5>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="sale_date" class="form-label">Sale Date</label>
+                    <input type="date" class="form-control" id="sale_date" name="sale_date" required value="{{ sale.sale_date.strftime('%Y-%m-%d') if sale.sale_date else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="payment_method" class="form-label">Payment Method</label>
+                    <select class="form-select" id="payment_method" name="payment_method">
+                        <option value="Cash" {% if sale.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
+                        <option value="Due" {% if sale.payment_method == 'Due' %}selected{% endif %}>Due</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="note" class="form-label">Note</label>
+                    <input type="text" class="form-control" id="note" name="note" value="{{ sale.note or '' }}">
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="transport_cost" class="form-label">Transport Cost</label>
+                    <input type="number" step="0.01" min="0" class="form-control calc-input" id="transport_cost" name="transport_cost" value="{{ sale.transport_cost or 0 }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="labour_cost" class="form-label">Labour Cost</label>
+                    <input type="number" step="0.01" min="0" class="form-control calc-input" id="labour_cost" name="labour_cost" value="{{ sale.labour_cost or 0 }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="vat" class="form-label">VAT</label>
+                    <input type="number" step="0.01" min="0" class="form-control calc-input" id="vat" name="vat" value="{{ sale.vat or 0 }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="discount" class="form-label">Discount</label>
+                    <input type="number" step="0.01" min="0" class="form-control calc-input" id="discount" name="discount" value="{{ sale.discount or 0 }}">
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-3 offset-md-3">
+                    <label class="form-label fw-bold text-danger">Grand Total</label>
+                    <input type="text" class="form-control fw-bold" id="grand_total" readonly value="{{ '%.2f' % sale.total_amount }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="cash_paid" class="form-label text-success fw-bold">Cash Paid</label>
+                    <input type="number" step="0.01" min="0" class="form-control fw-bold" id="cash_paid" name="cash_paid" value="{{ sale.cash_paid or 0 }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-danger fw-bold">Due Amount</label>
+                    <input type="number" step="0.01" min="0" class="form-control fw-bold" id="due_amount" name="due_amount" value="{{ '%.2f' % sale.due_amount }}">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-warning btn-lg"><i class="fas fa-edit"></i> Update Sale</button>
+            <a href="{{ url_for('sale.sale_report') }}" class="btn btn-secondary btn-lg">Cancel</a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    function loadCustomerDue(cid) {
+        if(cid) {
+            $.get('{{ url_for("customer_collection.get_customer_due", customer_id=0) }}'.replace('/0', '/' + cid), function(data) {
+                let prevDue = parseFloat(data.due) || 0;
+                // Exclude the current sale's due amount from the previous due to avoid double counting
+                let currentSaleDue = {{ sale.due_amount or 0 }};
+                // Only if the loaded customer is the original customer
+                let origCustomer = '{{ sale.customer_id }}';
+                if (cid == origCustomer) {
+                    prevDue = prevDue - currentSaleDue;
+                }
+                $('#previous_due').val(prevDue.toFixed(2));
+            }).fail(function() {
+                $('#previous_due').val('0.00');
+            });
+        }
+    }
+    
+    // Load initial customer due
+    loadCustomerDue($('#customer_id').val());
+
+    $('#customer_id').on('change', function() {
+        let cid = $(this).val();
+        if(cid) {
+            $.get('{{ url_for("sale.get_customer", customer_id=0) }}'.replace('/0', '/' + cid), function(data) {
+                $('#cust_address').val(data.address);
+                $('#cust_contact').val(data.contact);
+            });
+            loadCustomerDue(cid);
+        } else {
+            $('#cust_address').val('');
+            $('#cust_contact').val('');
+            $('#previous_due').val('0.00');
+        }
+    });
+
+    $('#product_search').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Scan Barcode or Search Product...',
+        minimumInputLength: 1,
+        ajax: {
+            url: '{{ url_for("sale.search_product") }}',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) { return { q: params.term }; },
+            processResults: function (data) { return { results: data }; }
+        }
+    });
+
+    $('#product_search').on('select2:select', function (e) {
+        var data = e.params.data;
+        if($('input[name="product_id[]"][value="'+data.id+'"]').length > 0) {
+            alert("Product already added! Update quantity.");
+            return;
+        }
+
+        var row = `
+        <tr>
+            <td><input type="hidden" name="product_id[]" value="${data.id}">${data.code}</td>
+            <td>${data.name}</td>
+            <td>${data.stock}</td>
+            <td><input type="number" step="0.01" min="0.01" class="form-control form-control-sm qty-input" name="quantity[]" value="1" required></td>
+            <td><input type="number" step="0.01" min="0" class="form-control form-control-sm price-input" name="price[]" value="${data.price}" required></td>
+            <td><input type="text" class="form-control form-control-sm row-total" readonly value="${data.price}"></td>
+            <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-times"></i></button></td>
+        </tr>`;
+        $('#product_rows').append(row);
+        $('#product_search').val(null).trigger('change');
+        calculateTotals();
+    });
+
+    $(document).on('click', '.remove-row', function() {
+        $(this).closest('tr').remove();
+        calculateTotals();
+    });
+
+    $(document).on('input', '.qty-input, .price-input, .calc-input', function() {
+        calculateTotals(); 
+    });
+    
+    $('#payment_method').on('change', function() { calculateTotals(); });
+
+    $('#cash_paid').on('input', function() {
+        let grandTotal = parseFloat($('#grand_total').val()) || 0;
+        let paid = parseFloat($(this).val()) || 0;
+        if (paid > grandTotal) {
+            alert("Cash Paid cannot exceed the payable amount (Grand Total)!");
+            paid = grandTotal;
+            $(this).val(paid.toFixed(2));
+        }
+        if (paid < 0) {
+            paid = 0;
+            $(this).val(paid.toFixed(2));
+        }
+        let due = grandTotal - paid;
+        $('#due_amount').val(due.toFixed(2));
+    });
+
+    $('#due_amount').on('input', function() {
+        let grandTotal = parseFloat($('#grand_total').val()) || 0;
+        let due = parseFloat($(this).val()) || 0;
+        if (due > grandTotal) {
+            due = grandTotal;
+            $(this).val(due.toFixed(2));
+        }
+        if (due < 0) {
+            alert("Due Amount cannot be negative!");
+            due = 0;
+            $(this).val(due.toFixed(2));
+        }
+        let paid = grandTotal - due;
+        $('#cash_paid').val(paid.toFixed(2));
+    });
+
+    function calculateTotals() {
+        let subtotal = 0;
+        $('#product_rows tr').each(function() {
+            let qty = parseFloat($(this).find('.qty-input').val()) || 0;
+            let price = parseFloat($(this).find('.price-input').val()) || 0;
+            let total = qty * price;
+            $(this).find('.row-total').val(total.toFixed(2));
+            subtotal += total;
+        });
+        $('#subtotal').val(subtotal.toFixed(2));
+
+        let transport = parseFloat($('#transport_cost').val()) || 0;
+        let labour = parseFloat($('#labour_cost').val()) || 0;
+        let vat = parseFloat($('#vat').val()) || 0;
+        let discount = parseFloat($('#discount').val()) || 0;
+        
+        let subBeforeDiscount = subtotal + transport + labour + vat;
+        if (discount > subBeforeDiscount) {
+            alert("Discount cannot exceed the Grand Total!");
+            discount = subBeforeDiscount;
+            $('#discount').val(discount.toFixed(2));
+        }
+
+        let grandTotal = subBeforeDiscount - discount;
+        $('#grand_total').val(grandTotal.toFixed(2));
+
+        let paid = parseFloat($('#cash_paid').val()) || 0;
+        if (paid > grandTotal) {
+            paid = grandTotal;
+            $('#cash_paid').val(paid.toFixed(2));
+        }
+        let due = grandTotal - paid;
+        if(due < 0) due = 0;
+        $('#due_amount').val(due.toFixed(2));
+    }
+});
+</script>
+{% endblock %}
