@@ -16,13 +16,13 @@ def create_app():
     app.config['SECRET_KEY'] = 'super-secret-key-change-in-production'
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///database.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_pre_ping': True,
-        'pool_recycle': 300,
-        'connect_args': {
-            'sslmode': 'require'
+    
+    auth_token = os.environ.get('TURSO_AUTH_TOKEN')
+    if auth_token:
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+            'connect_args': {'auth_token': auth_token}
         }
-    }
+
 
     db.init_app(app)
     migrate = Migrate(app, db)

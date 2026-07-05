@@ -7,7 +7,7 @@ import os
 os.environ['DATABASE_URL'] = 'sqlite:///database.db'
 
 app = create_app()
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {} # Remove sslmode for sqlite testing
+
 
 with app.app_context():
     # Pick a business

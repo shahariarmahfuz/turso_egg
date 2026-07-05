@@ -54,8 +54,8 @@ def _calculate_customer_due(customer_id):
         - float(total_collected_discount)
     )
 
-    # Avoid tiny floating-point negatives
-    if computed_due < 0.005:
+    # Avoid tiny floating-point anomalies like -0.0
+    if abs(computed_due) < 0.005:
         computed_due = 0.0
 
     return round(computed_due, 2), customer
@@ -105,12 +105,8 @@ def collection():
             # Use dynamically computed due instead of stored current_balance
             previous_due, _ = _calculate_customer_due(customer_id)
             
-            if cash_paid + discount > previous_due + 0.005:
-                flash("Cash Paid + Discount cannot exceed the Previous Due.", "danger")
-                return redirect(url_for('customer_collection.collection'))
-                
+            # Allow negative balance for advance payments
             balance = previous_due - discount - cash_paid
-            if balance < 0: balance = 0
             
             collection_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else dhaka_now().date()
             

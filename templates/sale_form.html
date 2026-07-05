@@ -8,18 +8,22 @@
         <form method="POST" id="saleForm">
             <h5 class="mb-3 border-bottom pb-2">Customer Information</h5>
             <div class="row mb-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="customer_id" class="form-label">Customer</label>
                     <select class="form-select select2-ajax" id="customer_id" name="customer_id" data-url="{{ url_for('customer.search_customer') }}" data-placeholder="Select Customer">
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">Address</label>
                     <input type="text" class="form-control" id="cust_address" readonly disabled>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">Contact Number</label>
                     <input type="text" class="form-control" id="cust_contact" readonly disabled>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-danger fw-bold">Previous Due</label>
+                    <input type="text" class="form-control fw-bold text-danger" id="previous_due" readonly value="0.00">
                 </div>
             </div>
 
@@ -137,6 +141,16 @@ $(document).ready(function() {
                 $('#cust_address').val(data.address);
                 $('#cust_contact').val(data.contact);
             });
+            $.get('{{ url_for("customer_collection.get_customer_due", customer_id=0) }}'.replace('/0', '/' + cid), function(data) {
+                let prevDue = parseFloat(data.due) || 0;
+                $('#previous_due').val(prevDue.toFixed(2));
+            }).fail(function() {
+                $('#previous_due').val('0.00');
+            });
+        } else {
+            $('#cust_address').val('');
+            $('#cust_contact').val('');
+            $('#previous_due').val('0.00');
         }
     });
 

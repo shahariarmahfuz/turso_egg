@@ -137,36 +137,10 @@ $(document).ready(function() {
     function calculateTotals() {
         let discount = parseFloat($('#discount').val()) || 0;
         let paid = parseFloat($('#cash_paid').val()) || 0;
-        let maxAllowed = prevDue - discount;
-        
-        if(maxAllowed < 0) maxAllowed = 0;
-
-        if(discount + paid > prevDue + 0.005) {
-            let msg = 'Discount + Paid Amount (' + (discount + paid).toFixed(2) + ') cannot exceed Previous Due (' + prevDue.toFixed(2) + ')!';
-            $('#validation_msg').text(msg).show();
-            $('#submitBtn').prop('disabled', true);
-
-            // Clamp the active field
-            if($(document.activeElement).attr('id') === 'cash_paid') {
-                paid = maxAllowed;
-                $('#cash_paid').val(paid > 0 ? paid.toFixed(2) : 0);
-            } else {
-                discount = prevDue - paid;
-                if(discount < 0) discount = 0;
-                $('#discount').val(discount.toFixed(2));
-            }
-            // Recalculate after clamping
-            discount = parseFloat($('#discount').val()) || 0;
-            paid = parseFloat($('#cash_paid').val()) || 0;
-            $('#validation_msg').hide();
-            $('#submitBtn').prop('disabled', false);
-        } else {
-            $('#validation_msg').hide();
-            $('#submitBtn').prop('disabled', false);
-        }
 
         let balance = prevDue - discount - paid;
-        if(balance < 0) balance = 0;
+        
+        // Show advance balance as negative, so no clamping here.
         $('#balance').val(balance.toFixed(2));
         $('#outstanding_balance').val(balance.toFixed(2));
     }
@@ -176,11 +150,7 @@ $(document).ready(function() {
         let discount = parseFloat($('#discount').val()) || 0;
         let paid = parseFloat($('#cash_paid').val()) || 0;
         
-        if(discount + paid > prevDue + 0.005) {
-            e.preventDefault();
-            alert('Discount + Paid Amount cannot exceed Previous Due!');
-            return false;
-        }
+        // Allow overpayments (no validation against prevDue)
         
         if(paid <= 0 && discount <= 0) {
             e.preventDefault();
