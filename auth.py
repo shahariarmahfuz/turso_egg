@@ -27,6 +27,7 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        remember = True if request.form.get('remember') else False
         
         # Use enable_assertions(False) in case limit is applied somewhere, though usually it's fine here
         # Actually since g.business is None on /dashboard/login, the before_compile filter is NOT added.
@@ -39,7 +40,7 @@ def login():
             if admin.status != 'Active':
                 flash('Your account is inactive. Please contact admin.', 'danger')
                 return redirect(url_for('auth.login'))
-            login_user(admin)
+            login_user(admin, remember=remember)
             session['role'] = admin.role
             from models import Business
             business = Business.query.get(admin.business_id)

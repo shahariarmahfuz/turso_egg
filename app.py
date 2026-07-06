@@ -39,6 +39,12 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///database.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
+    from datetime import timedelta
+    app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=30)
+    app.config['REMEMBER_COOKIE_SECURE'] = True
+    app.config['REMEMBER_COOKIE_HTTPONLY'] = True
+    app.config['REMEMBER_COOKIE_SAMESITE'] = 'Lax'
+    
     from sqlalchemy.pool import NullPool
 
     engine_options = {'poolclass': NullPool}
