@@ -13,15 +13,40 @@ load_dotenv()
 
 def create_app():
     app = Flask(__name__)
+    
+    import logging
+    from datetime import datetime, timezone
+    from sqlalchemy.exc import SQLAlchemyError
+    from flask import got_request_exception
+
+    def log_db_error(sender, exception, **extra):
+        if isinstance(exception, SQLAlchemyError):
+            raw_msg = str(exception)
+            auth_token = os.environ.get('TURSO_AUTH_TOKEN')
+            if auth_token and auth_token in raw_msg:
+                raw_msg = raw_msg.replace(auth_token, '***')
+                
+            logging.error(
+                f"Database Error - Type: {type(exception).__name__} | "
+                f"Message: {raw_msg} | "
+                f"Path: {request.path} | "
+                f"Timestamp: {datetime.now(timezone.utc).isoformat()}"
+            )
+            
+    got_request_exception.connect(log_db_error, app)
+
     app.config['SECRET_KEY'] = 'super-secret-key-change-in-production'
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///database.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
+    from sqlalchemy.pool import NullPool
+
+    engine_options = {'poolclass': NullPool}
     auth_token = os.environ.get('TURSO_AUTH_TOKEN')
     if auth_token:
-        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-            'connect_args': {'auth_token': auth_token}
-        }
+        engine_options['connect_args'] = {'auth_token': auth_token}
+    
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = engine_options
 
 
     db.init_app(app)
