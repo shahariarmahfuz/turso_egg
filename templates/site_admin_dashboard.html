@@ -55,6 +55,11 @@
                                     <label>Business Slug</label>
                                     <input type="text" name="business_slug" class="form-control" value="{{ b.business_slug }}" required>
                                 </div>
+                                <div class="mb-3">
+                                    <label>Dashboard Baseline Date (Optional)</label>
+                                    <input type="date" name="dashboard_baseline_date" class="form-control" value="{{ b.dashboard_baseline_date.strftime('%Y-%m-%d') if b.dashboard_baseline_date else '' }}">
+                                    <small class="text-muted">Only All Time Dashboard calculations are affected.</small>
+                                </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -85,6 +90,11 @@
                     <div class="mb-3">
                         <label>Business Slug</label>
                         <input type="text" name="business_slug" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Dashboard Baseline Date (Optional)</label>
+                        <input type="date" name="dashboard_baseline_date" class="form-control">
+                        <small class="text-muted">Only All Time Dashboard calculations are affected.</small>
                     </div>
                 </div>
                 <div class="modal-footer">

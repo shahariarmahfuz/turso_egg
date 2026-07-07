@@ -51,7 +51,21 @@ def dashboard():
 def create_business():
     name = request.form.get('business_name')
     slug = request.form.get('business_slug')
-    new_business = Business(business_name=name, business_slug=slug)
+    baseline_str = request.form.get('dashboard_baseline_date')
+    baseline_date = None
+    if baseline_str:
+        from datetime import datetime
+        from models import dhaka_now_date
+        try:
+            parsed_date = datetime.strptime(baseline_str, '%Y-%m-%d').date()
+            if parsed_date > dhaka_now_date():
+                flash('Dashboard baseline date cannot be in the future.', 'danger')
+                return redirect(url_for('site_admin.dashboard'))
+            baseline_date = parsed_date
+        except ValueError:
+            pass
+
+    new_business = Business(business_name=name, business_slug=slug, dashboard_baseline_date=baseline_date)
     db.session.add(new_business)
     try:
         db.session.commit()
@@ -68,6 +82,22 @@ def edit_business(id):
     business = Business.query.get_or_404(id)
     business.business_name = request.form.get('business_name')
     business.business_slug = request.form.get('business_slug')
+    
+    baseline_str = request.form.get('dashboard_baseline_date')
+    if baseline_str:
+        from datetime import datetime
+        from models import dhaka_now_date
+        try:
+            parsed_date = datetime.strptime(baseline_str, '%Y-%m-%d').date()
+            if parsed_date > dhaka_now_date():
+                flash('Dashboard baseline date cannot be in the future.', 'danger')
+                return redirect(url_for('site_admin.dashboard'))
+            business.dashboard_baseline_date = parsed_date
+        except ValueError:
+            pass
+    else:
+        business.dashboard_baseline_date = None
+
     db.session.commit()
     flash('Business updated.', 'success')
     return redirect(url_for('site_admin.dashboard'))

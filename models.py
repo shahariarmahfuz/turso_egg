@@ -21,6 +21,7 @@ class Business(db.Model):
     business_slug = db.Column(db.String(150), unique=True, nullable=False)
     status = db.Column(db.String(50), default='Active')
     created_at = db.Column(db.DateTime, default=dhaka_now)
+    dashboard_baseline_date = db.Column(db.Date, nullable=True)
 
 def generate_avatar_seed():
     return ''.join(random.choices(string.ascii_letters + string.digits, k=10))
