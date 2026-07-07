@@ -42,9 +42,7 @@ def add_supplier():
 
         try:
             prev_bal_val = float(previous_balance)
-            if prev_bal_val < 0:
-                flash("Previous Balance cannot be negative.", "danger")
-            elif Supplier.query.filter_by(supplier_name=supplier_name).first():
+            if Supplier.query.filter_by(supplier_name=supplier_name).first():
                 flash("Supplier name already exists.", "danger")
             else:
                 if contact_number and len(contact_number.strip()) < 7:
@@ -76,6 +74,7 @@ def manage_supplier():
     return render_template('manage_supplier.html', suppliers=suppliers)
 
 @login_required
+@admin_required
 @supplier_bp.route('/edit_supplier/<int:id>', methods=['GET', 'POST'])
 def edit_supplier(id):
     sup = Supplier.query.get_or_404(id)
@@ -91,18 +90,15 @@ def edit_supplier(id):
         else:
             try:
                 prev_bal_val = float(previous_balance)
-                if prev_bal_val < 0:
-                    flash("Previous Balance cannot be negative.", "danger")
-                else:
-                    diff = prev_bal_val - sup.previous_balance
-                    sup.current_balance += diff
-                    sup.previous_balance = prev_bal_val
-                    sup.supplier_name = supplier_name
-                    sup.address = address
-                    sup.contact_number = contact_number
-                    db.session.commit()
-                    flash("Supplier updated successfully.", "success")
-                    return redirect(url_for('supplier.manage_supplier'))
+                diff = prev_bal_val - sup.previous_balance
+                sup.current_balance += diff
+                sup.previous_balance = prev_bal_val
+                sup.supplier_name = supplier_name
+                sup.address = address
+                sup.contact_number = contact_number
+                db.session.commit()
+                flash("Supplier updated successfully.", "success")
+                return redirect(url_for('supplier.manage_supplier'))
             except Exception as e:
                 db.session.rollback()
                 flash(f"Error: {e}", "danger")
