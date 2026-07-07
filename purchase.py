@@ -123,6 +123,217 @@ def search_product():
     return jsonify(results)
 
 @login_required
+@admin_required
+@purchase_bp.route('/edit_purchase/<int:id>', methods=['GET', 'POST'])
+def edit_purchase(id):
+    purchase = Purchase.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        try:
+            supplier_id = request.form.get('supplier_id')
+            bill_number = request.form.get('bill_number')
+            purchase_date_str = request.form.get('purchase_date')
+            payment_method = request.form.get('payment_method')
+            
+            transport_cost = float(request.form.get('transport_cost') or 0.0)
+            other_cost = float(request.form.get('other_cost') or 0.0)
+            discount = float(request.form.get('discount') or 0.0)
+            cash_paid = float(request.form.get('cash_paid') or 0.0)
+            note = request.form.get('note')
+
+            product_ids = request.form.getlist('product_id[]')
+            quantities = request.form.getlist('quantity[]')
+            prices = request.form.getlist('price[]')
+
+            if not supplier_id or not product_ids:
+                flash("Supplier and at least one product are required.", "danger")
+                return redirect(url_for('purchase.edit_purchase', id=id))
+
+            purchase_date = datetime.strptime(purchase_date_str, '%Y-%m-%d').date() if purchase_date_str else purchase.purchase_date
+            
+            subtotal = 0.0
+            new_items_map = {}
+            for p_id, qty, price in zip(product_ids, quantities, prices):
+                qty_f = float(qty)
+                price_f = float(price)
+                subtotal += qty_f * price_f
+                new_items_map[int(p_id)] = {'qty': qty_f, 'price': price_f}
+                
+            total_amount = subtotal + transport_cost + other_cost - discount
+            due_amount = total_amount - cash_paid
+            if due_amount < 0: due_amount = 0
+
+            # 1. Handle Delta for PurchaseItems & Stock
+            old_items_map = {item.product_id: item for item in purchase.items}
+            
+            for p_id, old_item in old_items_map.items():
+                if p_id not in new_items_map:
+                    # Removed item
+                    prod = Product.query.get(p_id)
+                    if prod:
+                        if prod.current_stock - old_item.quantity < 0:
+                            raise ValueError(f"Stock for {prod.product_name} cannot be negative during removal.")
+                        prod.current_stock -= old_item.quantity
+                    db.session.delete(old_item)
+                    
+            for p_id, new_data in new_items_map.items():
+                qty_f = new_data['qty']
+                price_f = new_data['price']
+                
+                if p_id in old_items_map:
+                    # Modified item
+                    old_item = old_items_map[p_id]
+                    qty_diff = qty_f - old_item.quantity
+                    if qty_diff != 0:
+                        prod = Product.query.get(p_id)
+                        if prod:
+                            if prod.current_stock + qty_diff < 0:
+                                raise ValueError(f"Stock for {prod.product_name} cannot be negative during update.")
+                            prod.current_stock += qty_diff
+                    
+                    old_item.quantity = qty_f
+                    old_item.purchase_price = price_f
+                    old_item.total_price = qty_f * price_f
+                else:
+                    # Added item
+                    prod = Product.query.get(p_id)
+                    if prod:
+                        prod.current_stock += qty_f
+                        
+                    new_item = PurchaseItem(
+                        purchase_id=purchase.id,
+                        product_id=p_id,
+                        quantity=qty_f,
+                        purchase_price=price_f,
+                        total_price=qty_f * price_f
+                    )
+                    db.session.add(new_item)
+
+            # 2. Handle Delta for Supplier & SupplierLedger
+            old_supplier_id = purchase.supplier_id
+            old_due = purchase.due_amount
+            old_total = purchase.total_amount
+            old_paid = purchase.cash_paid
+            
+            if old_supplier_id != int(supplier_id):
+                # Supplier Changed
+                old_sup = Supplier.query.get(old_supplier_id)
+                new_sup = Supplier.query.get(supplier_id)
+                
+                if old_sup:
+                    old_sup.current_balance -= old_due
+                if new_sup:
+                    new_sup.current_balance += due_amount
+                    
+                from models import SupplierLedger
+                old_lg = SupplierLedger.query.filter_by(invoice_no=purchase.invoice_no, supplier_id=old_supplier_id).first()
+                if old_lg:
+                    db.session.delete(old_lg)
+                    
+                if due_amount > 0 or total_amount > 0:
+                    new_lg = SupplierLedger(
+                        supplier_id=new_sup.id,
+                        date=purchase_date,
+                        invoice_no=purchase.invoice_no,
+                        description=f"Purchase Invoice: {purchase.invoice_no} (Edited)",
+                        credit=total_amount,
+                        debit=cash_paid,
+                        balance=new_sup.current_balance
+                    )
+                    db.session.add(new_lg)
+            else:
+                # Supplier Unchanged
+                sup = Supplier.query.get(old_supplier_id)
+                if sup:
+                    due_diff = due_amount - old_due
+                    sup.current_balance += due_diff
+                    
+                    from models import SupplierLedger
+                    lg = SupplierLedger.query.filter_by(invoice_no=purchase.invoice_no).first()
+                    if lg:
+                        lg.date = purchase_date
+                        lg.credit = total_amount
+                        lg.debit = cash_paid
+                        lg.balance = sup.current_balance
+                    else:
+                        if due_amount > 0 or total_amount > 0:
+                            lg = SupplierLedger(
+                                supplier_id=sup.id,
+                                date=purchase_date,
+                                invoice_no=purchase.invoice_no,
+                                description=f"Purchase Invoice: {purchase.invoice_no} (Edited)",
+                                credit=total_amount,
+                                debit=cash_paid,
+                                balance=sup.current_balance
+                            )
+                            db.session.add(lg)
+
+            # 3. Handle Cash Ledger Delta
+            from models import CashLedger
+            cash_lg = CashLedger.query.filter_by(voucher_no=purchase.invoice_no).first()
+            if cash_paid > 0:
+                if cash_lg:
+                    diff = cash_paid - cash_lg.amount
+                    if diff != 0:
+                        cash_lg.amount = cash_paid
+                        cash_lg.date = purchase_date
+                        cash_lg.running_balance -= diff # Outgoing cash, so more paid = lower balance
+                        subsequent_cash = CashLedger.query.filter(CashLedger.id > cash_lg.id).all()
+                        for sc in subsequent_cash:
+                            sc.running_balance -= diff
+                    else:
+                        cash_lg.date = purchase_date
+                else:
+                    last_cash = CashLedger.query.order_by(CashLedger.id.desc()).first()
+                    running = last_cash.running_balance if last_cash else 0.0
+                    new_running = running - cash_paid
+                    cash_lg = CashLedger(
+                        voucher_no=purchase.invoice_no,
+                        description="Purchase Product in Cash (Edited)",
+                        amount=cash_paid,
+                        type='Out',
+                        date=purchase_date,
+                        running_balance=new_running
+                    )
+                    db.session.add(cash_lg)
+            else:
+                if cash_lg:
+                    amount_to_restore = cash_lg.amount
+                    subsequent_cash = CashLedger.query.filter(CashLedger.id > cash_lg.id).all()
+                    for sc in subsequent_cash:
+                        sc.running_balance += amount_to_restore
+                    db.session.delete(cash_lg)
+
+            # 4. Update Core Purchase
+            purchase.supplier_id = supplier_id
+            purchase.purchase_date = purchase_date
+            purchase.bill_number = bill_number
+            purchase.transport_cost = transport_cost
+            purchase.other_cost = other_cost
+            purchase.discount = discount
+            purchase.subtotal = subtotal
+            purchase.total_amount = total_amount
+            purchase.cash_paid = cash_paid
+            purchase.due_amount = due_amount
+            purchase.payment_method = payment_method
+            purchase.note = note
+
+            db.session.commit()
+            flash("Purchase updated successfully.", "success")
+            return redirect(url_for('purchase.manage_purchase'))
+        except ValueError as ve:
+            db.session.rollback()
+            flash(str(ve), "danger")
+            return redirect(url_for('purchase.edit_purchase', id=id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error updating purchase: {e}", "danger")
+            return redirect(url_for('purchase.edit_purchase', id=id))
+
+    return render_template('edit_purchase.html', purchase=purchase)
+
+@login_required
+
 @purchase_bp.route('/manage_purchase')
 def manage_purchase():
     purchases = Purchase.query.order_by(Purchase.id.desc()).all()

@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-4">
+    <div class="mb-3 py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Edit Purchase ({{ purchase.invoice_no }})</h6>
+    </div>
+    <div class="">
+        <form method="POST" id="purchaseForm">
+            <!-- Supplier Info -->
+            <h5 class="mb-3 border-bottom pb-2">Supplier Information</h5>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="supplier_id" class="form-label">Supplier <span class="text-danger">*</span></label>
+                    <select class="form-select select2-ajax" id="supplier_id" name="supplier_id" required data-url="{{ url_for('supplier.search_supplier') }}" data-placeholder="Select Supplier">
+                        <option value="{{ purchase.supplier_id }}" selected>{{ purchase.supplier.supplier_name }} ({{ purchase.supplier.supplier_code }})</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Address</label>
+                    <input type="text" class="form-control" id="sup_address" value="{{ purchase.supplier.address or '' }}" readonly disabled>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Contact Number</label>
+                    <input type="text" class="form-control" id="sup_contact" value="{{ purchase.supplier.contact_number or '' }}" readonly disabled>
+                </div>
+                <div class="col-md-3">
+                    <label for="bill_number" class="form-label">Bill Number</label>
+                    <input type="text" class="form-control" id="bill_number" name="bill_number" value="{{ purchase.bill_number or '' }}">
+                </div>
+            </div>
+
+            <!-- Product Selection -->
+            <h5 class="mb-3 border-bottom pb-2 mt-4">Products</h5>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label d-flex justify-content-between align-items-center">
+                        <span>Search Product by Code or Name</span>
+                        <a href="{{ url_for('product.product_list') }}" target="_blank" class="btn btn-sm btn-outline-info">📦 Product List</a>
+                    </label>
+                    <select class="form-select select2-product" id="product_search"></select>
+                </div>
+            </div>
+
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered table-sm" id="purchaseTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Product Code</th>
+                            <th>Product Name</th>
+                            <th>Quantity</th>
+                            <th>Purchase Price</th>
+                            <th>Total</th>
+                            <th>Current Stock</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="product_rows">
+                        {% for item in purchase.items %}
+                        <tr id="row_{{ item.product_id }}">
+                            <td><input type="hidden" name="product_id[]" value="{{ item.product_id }}">{{ item.product.product_code }}</td>
+                            <td>{{ item.product.product_name }}</td>
+                            <td><input type="number" step="any" min="0.01" class="form-control form-control-sm qty-input" name="quantity[]" value="{{ item.quantity }}" required></td>
+                            <td>
+                                <input type="number" step="any" min="0" class="form-control form-control-sm price-input-display" value="{{ item.purchase_price }}" required>
+                                <input type="hidden" class="price-input-hidden" name="price[]" value="{{ item.purchase_price }}">
+                            </td>
+                            <td>
+                                <input type="number" step="any" min="0" class="form-control form-control-sm row-total-display" value="{{ item.total_price }}">
+                                <input type="hidden" class="row-total-hidden" value="{{ item.total_price }}">
+                            </td>
+                            <td>{{ item.product.current_stock }}</td>
+                            <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-times"></i></button></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-end">Line Total:</td>
+                            <td><input type="text" class="form-control form-control-sm" id="subtotal" name="subtotal" readonly value="{{ '%.2f' % purchase.subtotal }}"></td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Bottom Section -->
+            <h5 class="mb-3 border-bottom pb-2 mt-4">Payment & Summary</h5>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="purchase_date" class="form-label">Purchase Date</label>
+                    <input type="date" class="form-control" id="purchase_date" name="purchase_date" value="{{ purchase.purchase_date.strftime('%Y-%m-%d') }}" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="payment_method" class="form-label">Payment Method</label>
+                    <select class="form-select" id="payment_method" name="payment_method">
+                        <option value="Cash" {% if purchase.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
+                        <option value="Due" {% if purchase.payment_method == 'Due' %}selected{% endif %}>Due</option>
+                        <option value="Partial" {% if purchase.payment_method == 'Partial' %}selected{% endif %}>Partial</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="note" class="form-label">Note</label>
+                    <input type="text" class="form-control" id="note" name="note" value="{{ purchase.note or '' }}">
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="transport_cost" class="form-label">Transport Cost</label>
+                    <input type="number" step="0.01" min="0" class="form-control calc-input" id="transport_cost" name="transport_cost" value="{{ purchase.transport_cost }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="other_cost" class="form-label">Other Cost</label>
+                    <input type="number" step="0.01" min="0" class="form-control calc-input" id="other_cost" name="other_cost" value="{{ purchase.other_cost }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="discount" class="form-label">Discount</label>
+                    <input type="number" step="0.01" min="0" class="form-control calc-input" id="discount" name="discount" value="{{ purchase.discount }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-danger">Grand Total</label>
+                    <input type="text" class="form-control fw-bold" id="grand_total" readonly value="{{ '%.2f' % purchase.total_amount }}">
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-3 offset-md-6">
+                    <label for="cash_paid" class="form-label text-success fw-bold">Cash Paid</label>
+                    <input type="number" step="0.01" min="0" class="form-control calc-input fw-bold" id="cash_paid" name="cash_paid" value="{{ purchase.cash_paid }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-danger fw-bold">Due Amount</label>
+                    <input type="number" step="0.01" min="0" class="form-control calc-input fw-bold" id="due_amount" name="due_amount" value="{{ '%.2f' % purchase.due_amount }}">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save"></i> Update Purchase</button>
+            <a href="{{ url_for('purchase.manage_purchase') }}" class="btn btn-secondary btn-lg">Cancel</a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('#supplier_id').on('change', function() {
+        let supId = $(this).val();
+        if(supId) {
+            $.get('{{ url_for("purchase.get_supplier", supplier_id=0) }}'.replace('/0', '/' + supId), function(data) {
+                $('#sup_address').val(data.address);
+                $('#sup_contact').val(data.contact);
+            });
+        }
+    });
+
+    $('.select2-product').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Search product...',
+        ajax: {
+            url: '{{ url_for("purchase.search_product") }}',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) { return { q: params.term }; },
+            processResults: function (data) { return { results: data }; }
+        }
+    });
+
+    $('.select2-product').on('select2:select', function (e) {
+        var data = e.params.data;
+        if ($('#row_' + data.id).length > 0) {
+            alert('Product already added. Increase quantity.');
+            $('.select2-product').val(null).trigger('change');
+            return;
+        }
+        var row = `
+        <tr id="row_${data.id}">
+            <td><input type="hidden" name="product_id[]" value="${data.id}">${data.code}</td>
+            <td>${data.name}</td>
+            <td><input type="number" step="any" min="0.01" class="form-control form-control-sm qty-input" name="quantity[]" value="1" required></td>
+            <td>
+                <input type="number" step="any" min="0" class="form-control form-control-sm price-input-display" value="0.00" required>
+                <input type="hidden" class="price-input-hidden" name="price[]" value="0">
+            </td>
+            <td>
+                <input type="number" step="any" min="0" class="form-control form-control-sm row-total-display" value="0.00">
+                <input type="hidden" class="row-total-hidden" value="0">
+            </td>
+            <td>${data.stock}</td>
+            <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-times"></i></button></td>
+        </tr>`;
+        $('#product_rows').append(row);
+        $('.select2-product').val(null).trigger('change');
+        calculateTotals();
+    });
+
+    $(document).on('click', '.remove-row', function() {
+        $(this).closest('tr').remove();
+        calculateTotals();
+    });
+
+    $(document).on('input', '.qty-input, .price-input-display', function() {
+        let tr = $(this).closest('tr');
+        let qty = parseFloat(tr.find('.qty-input').val()) || 0;
+        let price = parseFloat(tr.find('.price-input-display').val()) || 0;
+        
+        tr.find('.price-input-hidden').val(price);
+        
+        let total = qty * price;
+        tr.find('.row-total-hidden').val(total);
+        tr.find('.row-total-display').val(total.toFixed(2));
+        
+        calculateTotals();
+    });
+
+    $(document).on('input', '.row-total-display', function() {
+        let tr = $(this).closest('tr');
+        let total = parseFloat($(this).val()) || 0;
+        let qty = parseFloat(tr.find('.qty-input').val()) || 0;
+        
+        tr.find('.row-total-hidden').val(total);
+        
+        if (qty !== 0) {
+            let new_price = total / qty;
+            tr.find('.price-input-hidden').val(new_price);
+            tr.find('.price-input-display').val(new_price.toFixed(2));
+        } else {
+            tr.find('.price-input-hidden').val(0);
+            tr.find('.price-input-display').val(0);
+        }
+        
+        calculateTotals();
+    });
+
+    $(document).on('focus', '.price-input-display, .row-total-display', function() {
+        let tr = $(this).closest('tr');
+        if ($(this).hasClass('price-input-display')) {
+            let exact = parseFloat(tr.find('.price-input-hidden').val()) || 0;
+            $(this).val(exact);
+        } else if ($(this).hasClass('row-total-display')) {
+            let exact = parseFloat(tr.find('.row-total-hidden').val()) || 0;
+            $(this).val(exact);
+        }
+    });
+
+    $(document).on('blur', '.price-input-display, .row-total-display', function() {
+        let val = parseFloat($(this).val()) || 0;
+        $(this).val(val.toFixed(2));
+    });
+
+    $(document).on('input', '.calc-input', function() {
+        calculateTotals();
+    });
+    $('#payment_method').on('change', function() { calculateTotals(); });
+
+    $('#cash_paid').on('input', function() {
+        let grandTotal = parseFloat($('#grand_total').val()) || 0;
+        let paid = parseFloat($(this).val()) || 0;
+        if (paid > grandTotal) {
+            alert("Cash Paid cannot exceed the payable amount!");
+            paid = grandTotal;
+            $(this).val(paid.toFixed(2));
+        }
+        if (paid < 0) {
+            paid = 0;
+            $(this).val(paid.toFixed(2));
+        }
+        let due = grandTotal - paid;
+        $('#due_amount').val(due.toFixed(2));
+    });
+
+    $('#due_amount').on('input', function() {
+        let grandTotal = parseFloat($('#grand_total').val()) || 0;
+        let due = parseFloat($(this).val()) || 0;
+        if (due > grandTotal) {
+            due = grandTotal;
+            $(this).val(due.toFixed(2));
+        }
+        if (due < 0) {
+            alert("Due Amount cannot be negative!");
+            due = 0;
+            $(this).val(due.toFixed(2));
+        }
+        let paid = grandTotal - due;
+        $('#cash_paid').val(paid.toFixed(2));
+    });
+
+    function calculateTotals() {
+        let subtotal = 0;
+        $('#product_rows tr').each(function() {
+            let total = parseFloat($(this).find('.row-total-hidden').val()) || 0;
+            subtotal += total;
+        });
+        $('#subtotal').val(subtotal.toFixed(2));
+
+        let transport = parseFloat($('#transport_cost').val()) || 0;
+        let other = parseFloat($('#other_cost').val()) || 0;
+        let discount = parseFloat($('#discount').val()) || 0;
+        let grandTotal = subtotal + transport + other - discount;
+        $('#grand_total').val(grandTotal.toFixed(2));
+
+        let method = $('#payment_method').val();
+        if(method === 'Cash') {
+            $('#cash_paid').val(grandTotal.toFixed(2));
+            $('#cash_paid').prop('readonly', true);
+            $('#due_amount').prop('readonly', true);
+        } else if (method === 'Due') {
+            $('#cash_paid').val('0.00');
+            $('#cash_paid').prop('readonly', true);
+            $('#due_amount').val(grandTotal.toFixed(2));
+            $('#due_amount').prop('readonly', true);
+        } else {
+            $('#cash_paid').prop('readonly', false);
+            $('#due_amount').prop('readonly', false);
+        }
+
+        let paid = parseFloat($('#cash_paid').val()) || 0;
+        if (paid > grandTotal) {
+            paid = grandTotal;
+            $('#cash_paid').val(paid.toFixed(2));
+        }
+        let due = grandTotal - paid;
+        if(due < 0) due = 0;
+        $('#due_amount').val(due.toFixed(2));
+    }
+});
+</script>
+{% endblock %}
