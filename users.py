@@ -54,14 +54,17 @@ def add_user():
 @login_required
 @admin_required
 def manage_users():
-    users = Admin.query.all()
+    users = Admin.query.filter(Admin.is_hidden == False).all()
     return render_template('manage_users.html', users=users)
 
 @users_bp.route('/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def edit_user(id):
+    from flask import abort
     user = Admin.query.get_or_404(id)
+    if getattr(user, 'is_hidden', False):
+        abort(403)
     if request.method == 'POST':
         user.name = request.form.get('name')
         user.role = request.form.get('role')
@@ -87,6 +90,9 @@ def delete_user(id):
         return redirect(url_for('users.manage_users'))
         
     user = Admin.query.get_or_404(id)
+    from flask import abort
+    if getattr(user, 'is_hidden', False):
+        abort(403)
     db.session.delete(user)
     db.session.commit()
     flash('User deleted successfully.', 'success')

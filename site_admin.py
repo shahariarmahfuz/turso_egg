@@ -149,12 +149,14 @@ def add_user(business_id):
     password = request.form.get('password')
     role = request.form.get('role')
     name = request.form.get('name')
+    is_hidden = request.form.get('is_hidden') == 'on'
     user = Admin(
         username=username, 
         password=generate_password_hash(password), 
         role=role, 
         name=name, 
-        business_id=business_id
+        business_id=business_id,
+        is_hidden=is_hidden
     )
     db.session.add(user)
     try:
@@ -172,6 +174,7 @@ def edit_user(business_id, user_id):
     user = Admin.query.get_or_404(user_id)
     user.name = request.form.get('name')
     user.role = request.form.get('role')
+    user.is_hidden = request.form.get('is_hidden') == 'on'
     password = request.form.get('password')
     if password:
         user.password = generate_password_hash(password)
