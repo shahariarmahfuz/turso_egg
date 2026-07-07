@@ -157,57 +157,7 @@ def create_app():
         return redirect(url_for('auth.login'))
 
     with app.app_context():
-        # Ensure database is connected and initialized safely
-        try:
-            db.engine.connect()
-            print("Database connection verified.")
-
-            # Attempt automatic migrations safely
-            try:
-                import flask_migrate
-                
-                if not os.path.exists('migrations'):
-                    try:
-                        flask_migrate.init()
-                    except BaseException as e:
-                        print(f"Init warning: {e}")
-                
-                # 1. Ensure all tables exist from models first.
-                #    This prevents migrations from trying to ALTER
-                #    tables that don't exist yet on a fresh database.
-                db.create_all()
-                
-                # 2. Apply existing migrations (all are idempotent,
-                #    so they safely skip work already done by create_all).
-                try:
-                    flask_migrate.upgrade()
-                except BaseException as e:
-                    print(f"Upgrade warning: {e}")
-                
-                # 3. Stamp to ensure alembic_version is at the
-                #    current head revision.
-                try:
-                    flask_migrate.stamp()
-                except BaseException as e:
-                    print(f"Stamp warning: {e}")
-                    
-            except BaseException as e:
-                print(f"Migration phase skipped/error: {e}")
-
-            # Ensure Site Admin exists
-            from werkzeug.security import generate_password_hash
-            from models import Admin
-            try:
-                if not Admin.query.filter_by(username='siteadmin', role='Site Admin').first():
-                    site_admin = Admin(username='siteadmin', password=generate_password_hash('admin'), role='Site Admin')
-                    db.session.add(site_admin)
-                    db.session.commit()
-                    print("Initial Site Admin account created.")
-            except Exception as e:
-                print(f"Site Admin creation error: {e}")
-                
-        except Exception as e:
-            print(f"Startup check failed: {e}")
+        pass
 
     return app
 
