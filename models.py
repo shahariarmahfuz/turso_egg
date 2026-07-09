@@ -320,9 +320,12 @@ class CustomerCollection(db.Model):
     note = db.Column(db.Text, nullable=True)
     created_by = db.Column(db.Integer, db.ForeignKey('admin.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=dhaka_now)
+    updated_by = db.Column(db.Integer, db.ForeignKey('admin.id'), nullable=True)
+    updated_at = db.Column(db.DateTime, default=dhaka_now, onupdate=dhaka_now)
 
     customer = db.relationship('Customer', backref=db.backref('collections', cascade="all, delete-orphan"), lazy=True)
-    admin = db.relationship('Admin', backref='collections', lazy=True)
+    admin = db.relationship('Admin', foreign_keys=[created_by], backref='collections', lazy=True)
+    updater = db.relationship('Admin', foreign_keys=[updated_by], backref='updated_collections', lazy=True)
 
 class CashLedger(db.Model):
     __tablename__ = 'cash_ledgers'

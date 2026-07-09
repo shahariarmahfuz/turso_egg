@@ -174,6 +174,98 @@ def manage_collection():
     collections = CustomerCollection.query.order_by(CustomerCollection.date.desc(), CustomerCollection.id.desc()).all()
     return render_template('manage_collection.html', collections=collections)
 
+@customer_collection_bp.route('/edit_collection/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_collection(id):
+    col = CustomerCollection.query.get_or_404(id)
+    customer = col.customer
+    
+    if request.method == 'POST':
+        try:
+            # Concurrency check
+            submitted_updated_at_str = request.form.get('last_updated_at', '')
+            col_updated_at_str = str(col.updated_at or col.created_at)
+            
+            if submitted_updated_at_str != col_updated_at_str:
+                flash("Error: This collection was modified by another user while you were editing. Please refresh and try again.", "danger")
+                return redirect(url_for('customer_collection.edit_collection', id=col.id))
+            
+            payment_method = request.form.get('payment_method')
+            discount = float(request.form.get('discount') or 0)
+            cash_paid = float(request.form.get('cash_paid') or 0)
+            bank_name = request.form.get('bank_name')
+            cheque_number = request.form.get('cheque_number')
+            note = request.form.get('note')
+            
+            old_cash_paid = col.cash_paid
+            old_discount = col.discount
+            
+            cash_delta = cash_paid - old_cash_paid
+            discount_delta = discount - old_discount
+            
+            col.discount = discount
+            col.cash_paid = cash_paid
+            col.payment_method = payment_method
+            col.bank_name = bank_name if payment_method in ['Bank', 'Cheque'] else None
+            col.cheque_number = cheque_number if payment_method in ['Cheque'] else None
+            col.note = note
+            col.updated_by = current_user.id
+            col.updated_at = dhaka_now()
+            
+            c_ledger = CustomerLedger.query.filter_by(invoice_no=col.voucher_no).first()
+            if c_ledger:
+                c_ledger.credit = cash_paid + discount
+                c_ledger.description = f"Collection ({payment_method})"
+            
+            if cash_delta != 0 or old_cash_paid != cash_paid:
+                cash_lg = CashLedger.query.filter_by(voucher_no=col.voucher_no).first()
+                if cash_lg:
+                    if cash_paid == 0:
+                        db.session.delete(cash_lg)
+                        subsequent_cash = CashLedger.query.filter(CashLedger.id > cash_lg.id).all()
+                        for sc in subsequent_cash:
+                            sc.running_balance -= old_cash_paid
+                    else:
+                        cash_lg.amount = cash_paid
+                        cash_lg.description = f"Customer Collection from {customer.customer_name}"
+                        cash_lg.running_balance += cash_delta
+                        
+                        subsequent_cash = CashLedger.query.filter(CashLedger.id > cash_lg.id).all()
+                        for sc in subsequent_cash:
+                            sc.running_balance += cash_delta
+                elif cash_paid > 0:
+                    last_cash = CashLedger.query.order_by(CashLedger.id.desc()).first()
+                    running = last_cash.running_balance if last_cash else 0.0
+                    new_running = running + cash_paid
+                    
+                    new_cash_lg = CashLedger(
+                        voucher_no=col.voucher_no,
+                        description=f"Customer Collection from {customer.customer_name}",
+                        amount=cash_paid,
+                        type='In',
+                        date=col.date,
+                        running_balance=new_running
+                    )
+                    db.session.add(new_cash_lg)
+            
+            # Temporarily commit changes to compute due accurately
+            db.session.commit()
+            
+            computed_due, _ = _calculate_customer_due(customer.id)
+            customer.current_balance = computed_due
+            db.session.commit()
+            
+            flash("Collection updated successfully!", "success")
+            return redirect(url_for('customer_collection.manage_collection'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error updating collection: {e}", "danger")
+            return redirect(url_for('customer_collection.edit_collection', id=col.id))
+            
+    return render_template('collection_form.html', action="Edit", collection=col)
+
 @customer_collection_bp.route('/delete_collection/<int:id>', methods=['POST'])
 @login_required
 @admin_required

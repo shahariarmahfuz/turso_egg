@@ -6,15 +6,24 @@
     </div>
     <div class="">
         <form method="POST" id="collectionForm">
+            {% if collection %}
+            <input type="hidden" name="last_updated_at" value="{{ collection.updated_at or collection.created_at }}">
+            {% endif %}
             <div class="row mb-3">
                 <div class="col-md-4">
                     <label for="date" class="form-label">Date <span class="text-danger">*</span></label>
-                    <input type="date" class="form-control" id="date" name="date" required>
+                    <input type="date" class="form-control" id="date" name="date" {% if collection %}value="{{ collection.date.strftime('%Y-%m-%d') }}" readonly{% else %}required{% endif %}>
                 </div>
                 <div class="col-md-4">
                     <label for="customer_id" class="form-label">Customer <span class="text-danger">*</span></label>
-                    <select class="form-select select2-ajax" id="customer_id" name="customer_id" required data-url="{{ url_for('customer.search_customer') }}" data-placeholder="Select Customer">
+                    <select class="form-select select2-ajax" id="customer_id" name="customer_id" {% if collection %}disabled{% else %}required{% endif %} data-url="{{ url_for('customer.search_customer') }}" data-placeholder="Select Customer">
+                        {% if collection %}
+                        <option value="{{ collection.customer_id }}" selected>{{ collection.customer.customer_name }}</option>
+                        {% endif %}
                     </select>
+                    {% if collection %}
+                    <input type="hidden" name="customer_id" value="{{ collection.customer_id }}">
+                    {% endif %}
                 </div>
                 <div class="col-md-4">
                     <label for="previous_due" class="form-label text-danger fw-bold">Previous Due</label>
@@ -37,30 +46,30 @@
                 <div class="col-md-4">
                     <label for="payment_method" class="form-label">Payment Method</label>
                     <select class="form-select" id="payment_method" name="payment_method">
-                        <option value="Cash">Cash</option>
-                        <option value="Bank">Bank</option>
-                        <option value="Cheque">Cheque</option>
-                        <option value="Mobile Banking">Mobile Banking</option>
+                        <option value="Cash" {% if collection and collection.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
+                        <option value="Bank" {% if collection and collection.payment_method == 'Bank' %}selected{% endif %}>Bank</option>
+                        <option value="Cheque" {% if collection and collection.payment_method == 'Cheque' %}selected{% endif %}>Cheque</option>
+                        <option value="Mobile Banking" {% if collection and collection.payment_method == 'Mobile Banking' %}selected{% endif %}>Mobile Banking</option>
                     </select>
                 </div>
                 <div class="col-md-4 bank-details" style="display:none;">
                     <label for="bank_name" class="form-label">Bank Name</label>
-                    <input type="text" class="form-control" id="bank_name" name="bank_name">
+                    <input type="text" class="form-control" id="bank_name" name="bank_name" {% if collection %}value="{{ collection.bank_name or '' }}"{% endif %}>
                 </div>
                 <div class="col-md-4 cheque-details" style="display:none;">
                     <label for="cheque_number" class="form-label">Cheque Number</label>
-                    <input type="text" class="form-control" id="cheque_number" name="cheque_number">
+                    <input type="text" class="form-control" id="cheque_number" name="cheque_number" {% if collection %}value="{{ collection.cheque_number or '' }}"{% endif %}>
                 </div>
             </div>
 
             <div class="row mb-4">
                 <div class="col-md-4">
                     <label for="discount" class="form-label">Discount</label>
-                    <input type="number" step="0.01" min="0" class="form-control calc-input" id="discount" name="discount" value="0">
+                    <input type="number" step="0.01" min="0" class="form-control calc-input" id="discount" name="discount" value="{{ collection.discount if collection else '0' }}">
                 </div>
                 <div class="col-md-4">
                     <label for="cash_paid" class="form-label text-success fw-bold">Amount Paid</label>
-                    <input type="number" step="0.01" min="0" class="form-control calc-input fw-bold" id="cash_paid" name="cash_paid" value="0">
+                    <input type="number" step="0.01" min="0" class="form-control calc-input fw-bold" id="cash_paid" name="cash_paid" value="{{ collection.cash_paid if collection else '0' }}">
                     <div id="validation_msg" class="text-danger small mt-1" style="display:none;"></div>
                 </div>
                 <div class="col-md-4">
@@ -72,11 +81,11 @@
             <div class="row mb-4">
                 <div class="col-md-12">
                     <label for="note" class="form-label">Note</label>
-                    <input type="text" class="form-control" id="note" name="note">
+                    <input type="text" class="form-control" id="note" name="note" {% if collection %}value="{{ collection.note or '' }}"{% endif %}>
                 </div>
             </div>
             
-            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn"><i class="fas fa-save"></i> Submit Collection</button>
+            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn"><i class="fas fa-save"></i> Submit {{ action }}</button>
             <button type="button" class="btn btn-secondary btn-lg" onclick="location.reload();">Reset</button>
         </form>
     </div>
@@ -90,8 +99,20 @@
 <script>
 $(document).ready(function() {
     $.ajaxSetup({ cache: false });
-    document.getElementById('date').valueAsDate = new Date();
+    
     let prevDue = 0;
+    
+    {% if collection %}
+    prevDue = {{ collection.previous_due }};
+    $('#previous_due').val(prevDue.toFixed(2));
+    
+    // Set initial total collected dynamically or to 0 since we're editing an old state
+    // We avoid triggering customer AJAX because it pulls current due which includes this transaction.
+    $('#payment_method').trigger('change');
+    calculateTotals();
+    {% else %}
+    document.getElementById('date').valueAsDate = new Date();
+    {% endif %}
 
     $('#customer_id').on('change', function() {
         let cid = $(this).val();

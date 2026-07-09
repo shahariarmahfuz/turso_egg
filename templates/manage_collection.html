@@ -41,6 +41,7 @@
                         <td>
                             <button type="button" class="btn btn-primary btn-sm text-white" title="Print Receipt" onclick="alert('Printing Voucher: {{ c.voucher_no }}')"><i class="fas fa-print"></i></button>
 {% if current_user.role == 'Admin' %}
+                            <a href="{{ url_for('customer_collection.edit_collection', id=c.id) }}" class="btn btn-warning btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
                             <form action="{{ url_for('customer_collection.delete_collection', id=c.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this collection? Balances and ledgers will be reversed.');">
                                 <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
                             </form>
