@@ -66,7 +66,12 @@ def _calculate_customer_due(customer_id):
 def get_customer_due(customer_id):
     computed_due, customer = _calculate_customer_due(customer_id)
     if not customer:
-        return jsonify({'due': 0, 'total_collected': 0})
+        return jsonify({
+            'due': 0, 
+            'total_collected': 0,
+            'contact_number': 'N/A',
+            'address': 'N/A'
+        })
 
     # Sync stored current_balance if it drifted out of sync
     if abs((customer.current_balance or 0) - computed_due) > 0.005:
@@ -80,7 +85,9 @@ def get_customer_due(customer_id):
 
     return jsonify({
         'due': computed_due,
-        'total_collected': round(float(total_collected), 2)
+        'total_collected': round(float(total_collected), 2),
+        'contact_number': customer.contact_number or 'N/A',
+        'address': customer.address or 'N/A'
     })
 
 @customer_collection_bp.route('/collection', methods=['GET', 'POST'])

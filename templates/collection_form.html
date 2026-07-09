@@ -32,6 +32,17 @@
             </div>
 
             <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label text-muted">Contact Number</label>
+                    <input type="text" class="form-control bg-light" id="contact_number" readonly value="{% if collection %}{{ collection.customer.contact_number or 'N/A' }}{% endif %}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted">Address</label>
+                    <input type="text" class="form-control bg-light" id="address" readonly value="{% if collection %}{{ collection.customer.address or 'N/A' }}{% endif %}">
+                </div>
+            </div>
+
+            <div class="row mb-3">
                 <div class="col-md-4">
                     <label class="form-label text-muted">Total Collection Received</label>
                     <input type="text" class="form-control" id="total_collected" readonly value="0.00">
@@ -124,6 +135,9 @@ $(document).ready(function() {
                 $('#previous_due').val(prevDue.toFixed(2));
                 $('#total_collected').val(totalCollected.toFixed(2));
                 $('#outstanding_balance').val(prevDue.toFixed(2));
+                
+                $('#contact_number').val(data.contact_number);
+                $('#address').val(data.address);
 
                 // Reset input fields when customer changes
                 $('#discount').val(0);
