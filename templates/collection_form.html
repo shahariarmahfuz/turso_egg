@@ -12,7 +12,7 @@
             <div class="row mb-3">
                 <div class="col-md-4">
                     <label for="date" class="form-label">Date <span class="text-danger">*</span></label>
-                    <input type="date" class="form-control" id="date" name="date" {% if collection %}value="{{ collection.date.strftime('%Y-%m-%d') }}" readonly{% else %}required{% endif %}>
+                    <input type="date" class="form-control" id="date" name="date" {% if collection %}value="{{ collection.date.strftime('%Y-%m-%d') }}"{% endif %} required>
                 </div>
                 <div class="col-md-4">
                     <label for="customer_id" class="form-label">Customer <span class="text-danger">*</span></label>

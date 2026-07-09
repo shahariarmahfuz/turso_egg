@@ -191,6 +191,9 @@ def edit_collection(id):
                 flash("Error: This collection was modified by another user while you were editing. Please refresh and try again.", "danger")
                 return redirect(url_for('customer_collection.edit_collection', id=col.id))
             
+            date_str = request.form.get('date')
+            new_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else col.date
+            
             payment_method = request.form.get('payment_method')
             discount = float(request.form.get('discount') or 0)
             cash_paid = float(request.form.get('cash_paid') or 0)
@@ -198,12 +201,17 @@ def edit_collection(id):
             cheque_number = request.form.get('cheque_number')
             note = request.form.get('note')
             
+            old_date = col.date
             old_cash_paid = col.cash_paid
             old_discount = col.discount
             
-            cash_delta = cash_paid - old_cash_paid
-            discount_delta = discount - old_discount
+            if old_date == new_date and old_cash_paid == cash_paid and old_discount == discount and col.payment_method == payment_method and col.note == note and col.bank_name == bank_name and col.cheque_number == cheque_number:
+                flash("No changes detected.", "info")
+                return redirect(url_for('customer_collection.manage_collection'))
             
+            earliest_date = min(old_date, new_date)
+            
+            col.date = new_date
             col.discount = discount
             col.cash_paid = cash_paid
             col.payment_method = payment_method
@@ -215,41 +223,60 @@ def edit_collection(id):
             
             c_ledger = CustomerLedger.query.filter_by(invoice_no=col.voucher_no).first()
             if c_ledger:
+                c_ledger.date = new_date
                 c_ledger.credit = cash_paid + discount
                 c_ledger.description = f"Collection ({payment_method})"
             
-            if cash_delta != 0 or old_cash_paid != cash_paid:
-                cash_lg = CashLedger.query.filter_by(voucher_no=col.voucher_no).first()
-                if cash_lg:
-                    if cash_paid == 0:
-                        db.session.delete(cash_lg)
-                        subsequent_cash = CashLedger.query.filter(CashLedger.id > cash_lg.id).all()
-                        for sc in subsequent_cash:
-                            sc.running_balance -= old_cash_paid
-                    else:
-                        cash_lg.amount = cash_paid
-                        cash_lg.description = f"Customer Collection from {customer.customer_name}"
-                        cash_lg.running_balance += cash_delta
-                        
-                        subsequent_cash = CashLedger.query.filter(CashLedger.id > cash_lg.id).all()
-                        for sc in subsequent_cash:
-                            sc.running_balance += cash_delta
-                elif cash_paid > 0:
-                    last_cash = CashLedger.query.order_by(CashLedger.id.desc()).first()
-                    running = last_cash.running_balance if last_cash else 0.0
-                    new_running = running + cash_paid
-                    
-                    new_cash_lg = CashLedger(
-                        voucher_no=col.voucher_no,
-                        description=f"Customer Collection from {customer.customer_name}",
-                        amount=cash_paid,
-                        type='In',
-                        date=col.date,
-                        running_balance=new_running
-                    )
-                    db.session.add(new_cash_lg)
+            cash_lg = CashLedger.query.filter_by(voucher_no=col.voucher_no).first()
+            if cash_lg:
+                if cash_paid == 0:
+                    db.session.delete(cash_lg)
+                else:
+                    cash_lg.date = new_date
+                    cash_lg.amount = cash_paid
+                    cash_lg.description = f"Customer Collection from {customer.customer_name}"
+            elif cash_paid > 0:
+                new_cash_lg = CashLedger(
+                    voucher_no=col.voucher_no,
+                    description=f"Customer Collection from {customer.customer_name}",
+                    amount=cash_paid,
+                    type='In',
+                    date=new_date,
+                    running_balance=0.0
+                )
+                db.session.add(new_cash_lg)
+                
+            db.session.flush()
             
-            # Temporarily commit changes to compute due accurately
+            # --- CashLedger Forward Rebuild ---
+            baseline_cash = CashLedger.query.filter(CashLedger.date < earliest_date).order_by(CashLedger.date.desc(), CashLedger.id.desc()).first()
+            current_cash = baseline_cash.running_balance if baseline_cash else 0.0
+            
+            subsequent_cash = CashLedger.query.filter(CashLedger.date >= earliest_date).order_by(CashLedger.date.asc(), CashLedger.id.asc()).all()
+            for sc in subsequent_cash:
+                if sc.type == 'In':
+                    current_cash += sc.amount
+                elif sc.type == 'Out':
+                    current_cash -= sc.amount
+                sc.running_balance = current_cash
+                
+            # --- CustomerLedger Forward Rebuild ---
+            baseline_cust = CustomerLedger.query.filter(
+                CustomerLedger.customer_id == customer.id,
+                CustomerLedger.date < earliest_date
+            ).order_by(CustomerLedger.date.desc(), CustomerLedger.id.desc()).first()
+            
+            current_due = baseline_cust.balance if baseline_cust else (customer.previous_balance or 0.0)
+            
+            subsequent_cust = CustomerLedger.query.filter(
+                CustomerLedger.customer_id == customer.id,
+                CustomerLedger.date >= earliest_date
+            ).order_by(CustomerLedger.date.asc(), CustomerLedger.id.asc()).all()
+            
+            for sc in subsequent_cust:
+                current_due = current_due + sc.debit - sc.credit
+                sc.balance = current_due
+
             db.session.commit()
             
             computed_due, _ = _calculate_customer_due(customer.id)
