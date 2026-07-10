@@ -27,7 +27,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for s in sales %}
+                    {% for s in sales.items %}
                     <tr>
                         <td>{{ s.sale_date.strftime('%Y-%m-%d') }}</td>
                         <td>{{ s.invoice_no }}</td>
@@ -52,6 +52,8 @@
                     {% endfor %}
                 </tbody>
             </table>
+            {% set page_obj = sales %}
+            {% include '_pagination.html' %}
         </div>
     </div>
 </div>
@@ -79,7 +81,9 @@ $(document).ready(function() {
             { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm' },
             { extend: 'print', className: 'btn btn-secondary btn-sm' }
         ],
-        order: [[0, 'desc'], [1, 'desc']]
+        order: [[0, 'desc'], [1, 'desc']],
+        paging: false,
+        info: false
     });
 });
 </script>

@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from sqlalchemy.orm import joinedload
 from flask_login import login_required
 from auth import admin_required
 from models import db, Sale, SaleItem, Customer, Product, CustomerLedger, CashLedger, dhaka_now
@@ -370,7 +371,8 @@ def edit_sale(id):
 @login_required
 @sale_bp.route('/manage_sale')
 def manage_sale():
-    sales = Sale.query.order_by(Sale.id.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    sales = Sale.query.options(joinedload(Sale.customer)).order_by(Sale.id.desc()).paginate(page=page, per_page=50, error_out=False)
     return render_template('manage_sale.html', sales=sales)
 
 @login_required
@@ -424,16 +426,27 @@ def sale_report():
     if customer_id:
         query = query.filter(Sale.customer_id == customer_id)
         
-    sales = query.order_by(Sale.sale_date.desc()).all()
+    sales = query.options(joinedload(Sale.customer)).order_by(Sale.sale_date.desc()).all()
+    
+    totals_query = query.with_entities(
+        db.func.sum(Sale.total_amount),
+        db.func.sum(Sale.vat),
+        db.func.sum(Sale.labour_cost),
+        db.func.sum(Sale.discount),
+        db.func.sum(Sale.cash_paid),
+        db.func.sum(Sale.due_amount)
+    ).first()
+    
+    profit_query = query.join(SaleItem).with_entities(db.func.sum(SaleItem.profit)).first()
     
     totals = {
-        'total': sum(s.total_amount for s in sales),
-        'vat': sum(s.vat for s in sales),
-        'labour': sum(s.labour_cost for s in sales),
-        'discount': sum(s.discount for s in sales),
-        'paid': sum(s.cash_paid for s in sales),
-        'due': sum(s.due_amount for s in sales),
-        'profit': sum(sum(i.profit for i in s.items) for s in sales)
+        'total': totals_query[0] or 0.0 if totals_query else 0.0,
+        'vat': totals_query[1] or 0.0 if totals_query else 0.0,
+        'labour': totals_query[2] or 0.0 if totals_query else 0.0,
+        'discount': totals_query[3] or 0.0 if totals_query else 0.0,
+        'paid': totals_query[4] or 0.0 if totals_query else 0.0,
+        'due': totals_query[5] or 0.0 if totals_query else 0.0,
+        'profit': profit_query[0] or 0.0 if profit_query else 0.0
     }
     
     customers = Customer.query.all()

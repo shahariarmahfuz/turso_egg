@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request
 from flask_login import login_required
 from auth import admin_required
-from models import db, ExpenseEntry, ExpenseHead, Sale, SaleReturn, Purchase, PurchaseItem, CashLedger, Bank, BankTransaction, CustomerCollection, SupplierPayment
+from models import db, ExpenseEntry, ExpenseHead, Sale, SaleItem, SaleReturn, Purchase, PurchaseItem, CashLedger, Bank, BankTransaction, CustomerCollection, SupplierPayment
 from datetime import datetime
 from sqlalchemy import func
 
@@ -24,7 +24,7 @@ def expense_report():
         
     expenses = query.order_by(ExpenseEntry.date.desc()).all()
     heads = ExpenseHead.query.order_by(ExpenseHead.head_name).all()
-    total = sum(e.amount for e in expenses)
+    total = query.with_entities(db.func.sum(ExpenseEntry.amount)).scalar() or 0.0
     
     return render_template('expense_report.html', expenses=expenses, heads=heads, total=total,
                            from_date=from_date, to_date=to_date, head_id=head_id)
@@ -51,24 +51,21 @@ def income_report():
         exp_q = exp_q.filter(ExpenseEntry.date <= to_d)
         
     sales = sale_q.all()
-    total_sales_amount = sum(s.subtotal for s in sales)
-    sales_discount = sum(s.discount for s in sales)
+    total_sales_amount = sale_q.with_entities(db.func.sum(Sale.subtotal)).scalar() or 0.0
+    sales_discount = sale_q.with_entities(db.func.sum(Sale.discount)).scalar() or 0.0
     
     # Calculate COGS from SaleItems
-    cogs = 0
-    for s in sales:
-        for i in s.items:
-            cogs += (i.cost_price * i.quantity)
+    cogs = sale_q.join(SaleItem).with_entities(db.func.sum(SaleItem.cost_price * SaleItem.quantity)).scalar() or 0.0
             
     # Calculate Returns
     returns = s_ret_q.all()
-    total_returns = sum(r.subtotal for r in returns)
+    total_returns = s_ret_q.with_entities(db.func.sum(SaleReturn.subtotal)).scalar() or 0.0
     
     net_sales = total_sales_amount - total_returns - sales_discount
     gross_profit = net_sales - cogs
     
     expenses = exp_q.all()
-    office_expense = sum(e.amount for e in expenses)
+    office_expense = exp_q.with_entities(db.func.sum(ExpenseEntry.amount)).scalar() or 0.0
     
     net_profit = gross_profit - office_expense
     

@@ -178,7 +178,8 @@ def collection():
 @customer_collection_bp.route('/manage_collection')
 @login_required
 def manage_collection():
-    collections = CustomerCollection.query.order_by(CustomerCollection.date.desc(), CustomerCollection.id.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    collections = CustomerCollection.query.order_by(CustomerCollection.date.desc(), CustomerCollection.id.desc()).paginate(page=page, per_page=50, error_out=False)
     return render_template('manage_collection.html', collections=collections)
 
 @customer_collection_bp.route('/edit_collection/<int:id>', methods=['GET', 'POST'])

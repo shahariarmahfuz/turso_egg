@@ -102,7 +102,8 @@ def payment():
 @supplier_payment_bp.route('/manage_payment')
 @login_required
 def manage_payment():
-    payments = SupplierPayment.query.order_by(SupplierPayment.date.desc(), SupplierPayment.id.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    payments = SupplierPayment.query.order_by(SupplierPayment.date.desc(), SupplierPayment.id.desc()).paginate(page=page, per_page=50, error_out=False)
     return render_template('manage_payment.html', payments=payments)
 
 @supplier_payment_bp.route('/delete_payment/<int:id>', methods=['POST'])

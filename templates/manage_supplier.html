@@ -26,7 +26,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for sup in suppliers %}
+                    {% for sup in suppliers.items %}
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>{{ sup.supplier_name }}</td>
@@ -49,6 +49,8 @@
                     {% endfor %}
                 </tbody>
             </table>
+            {% set page_obj = suppliers %}
+            {% include '_pagination.html' %}
         </div>
     </div>
 </div>
@@ -75,7 +77,9 @@ $(document).ready(function() {
             { extend: 'excelHtml5', className: 'btn btn-success btn-sm' },
             { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm' },
             { extend: 'print', className: 'btn btn-secondary btn-sm' }
-        ]
+        ],
+        paging: false,
+        info: false
     });
 });
 </script>

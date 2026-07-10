@@ -70,7 +70,8 @@ def add_supplier():
 @login_required
 @supplier_bp.route('/manage_supplier')
 def manage_supplier():
-    suppliers = Supplier.query.order_by(Supplier.id.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    suppliers = Supplier.query.order_by(Supplier.id.desc()).paginate(page=page, per_page=50, error_out=False)
     return render_template('manage_supplier.html', suppliers=suppliers)
 
 @login_required

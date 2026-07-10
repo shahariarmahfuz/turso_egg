@@ -81,7 +81,8 @@ def add_customer():
 @login_required
 @customer_bp.route('/manage_customer')
 def manage_customer():
-    customers = Customer.query.order_by(Customer.id.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    customers = Customer.query.order_by(Customer.id.desc()).paginate(page=page, per_page=50, error_out=False)
     return render_template('manage_customer.html', customers=customers)
 
 @login_required
@@ -156,5 +157,5 @@ def customer_ledger():
 @customer_bp.route('/customer_due_list')
 def customer_due_list():
     customers = Customer.query.filter(Customer.current_balance > 0).all()
-    total_due = sum(c.current_balance for c in customers)
+    total_due = Customer.query.filter(Customer.current_balance > 0).with_entities(db.func.sum(Customer.current_balance)).scalar() or 0.0
     return render_template('customer_due_list.html', customers=customers, total_due=total_due)

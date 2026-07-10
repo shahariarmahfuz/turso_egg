@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from sqlalchemy.orm import joinedload
 from flask_login import login_required
 from auth import admin_required
 from models import db, Purchase, PurchaseItem, Supplier, Product, dhaka_now
@@ -337,7 +338,8 @@ def edit_purchase(id):
 
 @purchase_bp.route('/manage_purchase')
 def manage_purchase():
-    purchases = Purchase.query.order_by(Purchase.id.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    purchases = Purchase.query.options(joinedload(Purchase.supplier)).order_by(Purchase.id.desc()).paginate(page=page, per_page=50, error_out=False)
     return render_template('manage_purchase.html', purchases=purchases)
 
 @login_required
@@ -380,15 +382,24 @@ def purchase_report():
     if invoice_no:
         query = query.filter(Purchase.invoice_no.ilike(f"%{invoice_no}%"))
         
-    purchases = query.order_by(Purchase.purchase_date.desc()).all()
+    purchases = query.options(joinedload(Purchase.supplier)).order_by(Purchase.purchase_date.desc()).all()
+    
+    totals_query = query.with_entities(
+        db.func.sum(Purchase.total_amount),
+        db.func.sum(Purchase.transport_cost),
+        db.func.sum(Purchase.other_cost),
+        db.func.sum(Purchase.discount),
+        db.func.sum(Purchase.cash_paid),
+        db.func.sum(Purchase.due_amount)
+    ).first()
     
     totals = {
-        'amount': sum(p.total_amount for p in purchases),
-        'transport': sum(p.transport_cost for p in purchases),
-        'other': sum(p.other_cost for p in purchases),
-        'discount': sum(p.discount for p in purchases),
-        'paid': sum(p.cash_paid for p in purchases),
-        'due': sum(p.due_amount for p in purchases)
+        'amount': totals_query[0] or 0.0 if totals_query else 0.0,
+        'transport': totals_query[1] or 0.0 if totals_query else 0.0,
+        'other': totals_query[2] or 0.0 if totals_query else 0.0,
+        'discount': totals_query[3] or 0.0 if totals_query else 0.0,
+        'paid': totals_query[4] or 0.0 if totals_query else 0.0,
+        'due': totals_query[5] or 0.0 if totals_query else 0.0
     }
     
     return render_template('purchase_report.html', purchases=purchases, totals=totals, 

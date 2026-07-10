@@ -27,7 +27,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for c in collections %}
+                    {% for c in collections.items %}
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>{{ c.date.strftime('%Y-%m-%d') }}</td>
@@ -51,6 +51,8 @@
                     {% endfor %}
                 </tbody>
             </table>
+            {% set page_obj = collections %}
+            {% include '_pagination.html' %}
         </div>
     </div>
 </div>
@@ -78,7 +80,9 @@ $(document).ready(function() {
             { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i>', titleAttr: 'PDF', className: 'btn btn-danger btn-sm' },
             { extend: 'print', className: 'btn btn-secondary btn-sm' }
         ],
-        order: [[1, 'desc'], [2, 'desc']]
+        order: [[1, 'desc'], [2, 'desc']],
+        paging: false,
+        info: false
     });
 });
 </script>
