@@ -87,7 +87,7 @@ def payment():
 
             db.session.commit()
             flash("Payment saved successfully!", "success")
-            return redirect(url_for('supplier_payment.manage_payment'))
+            return redirect(url_for('supplier_payment.payment'))
             
         except Exception as e:
             db.session.rollback()

@@ -166,7 +166,7 @@ def collection():
 
             db.session.commit()
             flash("Collection saved successfully!", "success")
-            return redirect(url_for('customer_collection.manage_collection'))
+            return redirect(url_for('customer_collection.collection'))
             
         except Exception as e:
             db.session.rollback()

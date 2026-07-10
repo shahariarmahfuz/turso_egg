@@ -71,7 +71,7 @@ def add_customer():
                     
                 db.session.commit()
                 flash("Customer added successfully.", "success")
-                return redirect(url_for('customer.manage_customer'))
+                return redirect(url_for('customer.add_customer'))
             except Exception as e:
                 db.session.rollback()
                 flash(f"Error: {e}", "danger")

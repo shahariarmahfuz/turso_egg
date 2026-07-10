@@ -60,7 +60,7 @@ def add_supplier():
                     db.session.add(new_sup)
                     db.session.commit()
                     flash("Supplier added successfully.", "success")
-                    return redirect(url_for('supplier.manage_supplier'))
+                    return redirect(url_for('supplier.add_supplier'))
         except Exception as e:
             db.session.rollback()
             flash(f"Error: {e}", "danger")
