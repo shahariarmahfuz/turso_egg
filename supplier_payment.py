@@ -34,12 +34,7 @@ def payment():
                 
             previous_due = supplier.current_balance
             
-            if cash_paid + discount > previous_due:
-                flash("Cash Paid + Discount cannot exceed the Previous Due.", "danger")
-                return redirect(url_for('supplier_payment.payment'))
-                
             balance = previous_due - discount - cash_paid
-            if balance < 0: balance = 0
             
             payment_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else dhaka_now().date()
             
