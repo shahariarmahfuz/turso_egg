@@ -11,16 +11,16 @@ supplier_bp = Blueprint('supplier', __name__, url_prefix='/supplier')
 @supplier_bp.route('/search_supplier', methods=['GET'])
 def search_supplier():
     q = request.args.get('q', '').strip()
-    if not q or len(q) < 2:
-        return jsonify([])
-    
-    suppliers = Supplier.query.filter(
-        or_(
-            Supplier.supplier_name.ilike(f'%{q}%'),
-            Supplier.supplier_code.ilike(f'%{q}%'),
-            Supplier.contact_number.ilike(f'%{q}%')
-        )
-    ).limit(20).all()
+    if not q:
+        suppliers = Supplier.query.limit(20).all()
+    else:
+        suppliers = Supplier.query.filter(
+            or_(
+                Supplier.supplier_name.ilike(f'%{q}%'),
+                Supplier.supplier_code.ilike(f'%{q}%'),
+                Supplier.contact_number.ilike(f'%{q}%')
+            )
+        ).limit(20).all()
     
     results = []
     for s in suppliers:

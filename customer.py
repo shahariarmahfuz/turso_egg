@@ -11,16 +11,16 @@ customer_bp = Blueprint('customer', __name__, url_prefix='/customer')
 @customer_bp.route('/search_customer', methods=['GET'])
 def search_customer():
     q = request.args.get('q', '').strip()
-    if not q or len(q) < 2:
-        return jsonify([])
-    
-    customers = Customer.query.filter(
-        or_(
-            Customer.customer_name.ilike(f'%{q}%'),
-            Customer.customer_code.ilike(f'%{q}%'),
-            Customer.contact_number.ilike(f'%{q}%')
-        )
-    ).limit(20).all()
+    if not q:
+        customers = Customer.query.limit(20).all()
+    else:
+        customers = Customer.query.filter(
+            or_(
+                Customer.customer_name.ilike(f'%{q}%'),
+                Customer.customer_code.ilike(f'%{q}%'),
+                Customer.contact_number.ilike(f'%{q}%')
+            )
+        ).limit(20).all()
     
     results = []
     for c in customers:

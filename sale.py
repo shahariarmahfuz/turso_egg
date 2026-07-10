@@ -151,16 +151,17 @@ def get_customer(customer_id):
 def search_product():
     term = request.args.get('q', '')
     if not term:
-        return jsonify([])
-    # Support barcode / product_code / product_name search
-    prods = Product.query.filter(
-        db.or_(
-            Product.product_code.ilike(f'%{term}%'),
-            Product.product_name.ilike(f'%{term}%'),
-            Product.barcode.ilike(f'%{term}%')
-        ),
-        Product.status == 'Active'
-    ).limit(10).all()
+        prods = Product.query.filter(Product.status == 'Active').limit(20).all()
+    else:
+        # Support barcode / product_code / product_name search
+        prods = Product.query.filter(
+            db.or_(
+                Product.product_code.ilike(f'%{term}%'),
+                Product.product_name.ilike(f'%{term}%'),
+                Product.barcode.ilike(f'%{term}%')
+            ),
+            Product.status == 'Active'
+        ).limit(20).all()
     results = [{'id': p.id, 'text': f"{p.product_name} ({p.product_code}) - Stock: {p.current_stock}", 'code': p.product_code, 'name': p.product_name, 'stock': p.current_stock, 'price': p.selling_price} for p in prods]
     return jsonify(results)
 

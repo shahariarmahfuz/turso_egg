@@ -654,12 +654,7 @@
                     $(this).select2({
                         theme: 'bootstrap-5',
                         placeholder: placeholder,
-                        minimumInputLength: 2,
-                        language: {
-                            inputTooShort: function() {
-                                return "Type at least 2 characters to search.";
-                            }
-                        },
+                        width: '100%',
                         ajax: {
                             url: searchUrl,
                             dataType: 'json',

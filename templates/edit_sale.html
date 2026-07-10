@@ -192,7 +192,7 @@ $(document).ready(function() {
     $('#product_search').select2({
         theme: 'bootstrap-5',
         placeholder: 'Scan Barcode or Search Product...',
-        minimumInputLength: 1,
+        width: '100%',
         ajax: {
             url: '{{ url_for("sale.search_product") }}',
             dataType: 'json',
