@@ -95,6 +95,7 @@ class Supplier(db.Model):
     contact_number = db.Column(db.String(20), nullable=True)
     previous_balance = db.Column(db.Float, default=0.0)
     current_balance = db.Column(db.Float, default=0.0)
+    status = db.Column(db.String(20), default='Active')
     created_date = db.Column(db.Date, default=dhaka_now_date)
     created_at = db.Column(db.DateTime, default=dhaka_now)
     updated_at = db.Column(db.DateTime, default=dhaka_now, onupdate=dhaka_now)

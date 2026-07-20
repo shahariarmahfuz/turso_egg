@@ -12,9 +12,10 @@ supplier_bp = Blueprint('supplier', __name__, url_prefix='/supplier')
 def search_supplier():
     q = request.args.get('q', '').strip()
     if not q:
-        suppliers = Supplier.query.limit(20).all()
+        suppliers = Supplier.query.filter_by(status='Active').limit(20).all()
     else:
         suppliers = Supplier.query.filter(
+            Supplier.status == 'Active',
             or_(
                 Supplier.supplier_name.ilike(f'%{q}%'),
                 Supplier.supplier_code.ilike(f'%{q}%'),
@@ -106,16 +107,63 @@ def edit_supplier(id):
     return render_template('supplier_form.html', action="Edit", supplier=sup)
 
 @login_required
+@admin_required
 @supplier_bp.route('/delete_supplier/<int:id>', methods=['POST'])
 def delete_supplier(id):
     sup = Supplier.query.get_or_404(id)
-    # Placeholder: Prevent deletion if Purchase or Payment records exist
-    # if sup.purchases:
-    #     flash("Cannot delete supplier with existing purchase records.", "danger")
-    #     return redirect(url_for('supplier.manage_supplier'))
-    db.session.delete(sup)
+    has_tx = len(sup.purchases) > 0 or len(sup.payments) > 0 or len(sup.purchase_returns) > 0 or len(sup.ledger_entries) > 0
+    if has_tx:
+        sup.status = 'Inactive'
+        flash("Supplier has transaction history and was archived successfully.", "success")
+    else:
+        db.session.delete(sup)
+        flash("Supplier permanently deleted.", "success")
     db.session.commit()
-    flash("Supplier deleted successfully.", "success")
+    return redirect(url_for('supplier.manage_supplier'))
+
+@login_required
+@admin_required
+@supplier_bp.route('/restore_supplier/<int:id>', methods=['POST'])
+def restore_supplier(id):
+    sup = Supplier.query.get_or_404(id)
+    sup.status = 'Active'
+    db.session.commit()
+    flash("Supplier restored successfully.", "success")
+    return redirect(url_for('supplier.manage_supplier'))
+
+@login_required
+@admin_required
+@supplier_bp.route('/adjust_balance', methods=['POST'])
+def adjust_balance():
+    supplier_id = request.form.get('supplier_id')
+    new_balance = float(request.form.get('new_balance', 0.0))
+    note = request.form.get('note', 'Manual Balance Adjustment')
+    
+    sup = Supplier.query.get_or_404(supplier_id)
+    diff = new_balance - sup.current_balance
+    
+    if diff != 0:
+        sup.current_balance = new_balance
+        
+        credit = diff if diff > 0 else 0.0
+        debit = abs(diff) if diff < 0 else 0.0
+        
+        import random, string
+        adj_invoice = 'ADJ-' + ''.join(random.choices(string.digits, k=6))
+        
+        from models import SupplierLedger
+        ledger = SupplierLedger(
+            supplier_id=sup.id,
+            date=dhaka_now().date(),
+            invoice_no=adj_invoice,
+            description=f"Balance Adjustment: {note}",
+            credit=credit,
+            debit=debit,
+            balance=new_balance
+        )
+        db.session.add(ledger)
+        db.session.commit()
+        flash("Balance adjusted successfully.", "success")
     return redirect(url_for('supplier.manage_supplier'))
 
 @login_required
